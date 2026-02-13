@@ -73,34 +73,79 @@ git clone https://github.com/rwilson504/agent-skills.git
 cd agent-skills
 ```
 
+Or download individual skill packages from the [latest release](https://github.com/rwilson504/agent-skills/releases/latest).
+
 ## 📁 Repository Structure
 
 ```
 agent-skills/
-├── power-platform-connectors/   # Power Platform custom connector skills
-│   ├── templates/               # Connector templates
-│   ├── examples/                # Example connectors
-│   └── docs/                    # Documentation
-└── n8n-nodes/                   # n8n node development skills
-    ├── templates/               # Node templates
-    ├── examples/                # Example nodes
-    └── docs/                    # Documentation
+├── n8n-create-nodes/                    # n8n node development skill
+│   ├── SKILL.md                         # Main skill instructions
+│   ├── CREDENTIAL_PATTERNS.md           # Credential implementation patterns
+│   ├── TRIGGER_PATTERNS.md              # Trigger node patterns
+│   ├── EXAMPLES.md                      # Full examples
+│   ├── COMMON_MISTAKES.md               # Common mistakes and fixes
+│   └── evaluations/                     # Test scenarios
+├── power-platform-custom-connector/     # Power Platform connector skill
+│   ├── SKILL.md                         # Main skill instructions
+│   ├── AUTH_PATTERNS.md                 # Authentication patterns
+│   ├── OPENAPI_EXTENSIONS.md            # x-ms-* OpenAPI extensions
+│   ├── POLICY_TEMPLATES.md              # Policy template reference
+│   ├── CUSTOM_CODE.md                   # Custom code (script.csx)
+│   ├── WEBHOOK_TRIGGERS.md              # Webhook trigger patterns
+│   ├── EXAMPLES.md                      # Full examples
+│   ├── COMMON_MISTAKES.md               # Common mistakes and fixes
+│   └── evaluations/                     # Test scenarios
+├── build.sh                             # Build script (bash)
+├── build.ps1                            # Build script (PowerShell)
+└── .github/workflows/release.yml        # CI: build + publish releases
 ```
 
 ## 🔧 Usage
 
 ### Creating a Power Platform Custom Connector
 
-1. Navigate to the `power-platform-connectors/` directory
-2. Follow the templates and examples provided
-3. Use the Power Platform CLI to test and deploy your connector
+1. Navigate to the `power-platform-custom-connector/` directory
+2. Start with `SKILL.md` for the main instructions
+3. Reference `AUTH_PATTERNS.md`, `OPENAPI_EXTENSIONS.md`, and other files as needed
 
 ### Creating an n8n Community Node
 
-1. Navigate to the `n8n-nodes/` directory
-2. Use the provided templates as a starting point
-3. Implement your node following n8n's development guidelines
-4. Test your node locally before publishing
+1. Navigate to the `n8n-create-nodes/` directory
+2. Start with `SKILL.md` for the main instructions
+3. Reference `CREDENTIAL_PATTERNS.md`, `TRIGGER_PATTERNS.md`, and other files as needed
+
+## 📦 Distribution Packages
+
+Pre-built zip packages are available on the [Releases](https://github.com/rwilson504/agent-skills/releases) page.
+
+Each release includes:
+- **agent-skills-v\<version\>.zip** — Complete bundle with all skills
+- **n8n-create-nodes-v\<version\>.zip** — n8n skill only
+- **power-platform-custom-connector-v\<version\>.zip** — Power Platform skill only
+
+### Building Locally
+
+```bash
+# Bash (Linux / macOS / CI)
+./build.sh 1.0.0
+
+# PowerShell (Windows)
+.\build.ps1 -Version 1.0.0
+```
+
+Output zips are written to the `dist/` folder.
+
+### Publishing a Release
+
+Push a version tag to trigger the GitHub Actions workflow, which builds the packages and creates a GitHub Release with the zips attached:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Tags containing `-` (e.g., `v1.0.0-beta`) are automatically marked as pre-releases.
 
 ## 🤝 Contributing
 
