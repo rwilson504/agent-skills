@@ -1,0 +1,20 @@
+{
+  "id": "eval-003-create-trigger-node",
+  "skills": ["n8n-create-nodes"],
+  "query": "Create an n8n trigger node that listens for new events from a service via webhook. The service supports registering webhook URLs via its API. When activated, the node should register the webhook with the external service, and when deactivated, it should remove the registration.",
+  "expected_behavior": [
+    "Creates a trigger node class with group: ['trigger']",
+    "Sets inputs to [] (empty array — trigger nodes have no inputs)",
+    "Defines webhooks array in description with name, httpMethod, responseMode, path",
+    "Implements webhookMethods with checkExists, create, and delete methods",
+    "Uses this.getNodeWebhookUrl('default') to get the n8n webhook URL",
+    "Uses this.getWorkflowStaticData('node') to store webhook registration ID",
+    "Implements webhook() method that processes incoming payloads",
+    "Returns { workflowData: [this.helpers.returnJsonArray(bodyData)] }",
+    "Uses IHookFunctions for webhookMethods and IWebhookFunctions for webhook()",
+    "Names the class with Trigger suffix (e.g., MyServiceTrigger)",
+    "Names the file with Trigger suffix (e.g., MyServiceTrigger.node.ts)"
+  ],
+  "baseline_without_skill": "Agent may create a regular action node instead of a trigger, forget to set empty inputs, miss webhookMethods lifecycle methods, or use wrong function context types.",
+  "with_skill_expected": "Agent produces a complete webhook trigger node with proper lifecycle management, correct empty inputs, and all required webhook methods."
+}

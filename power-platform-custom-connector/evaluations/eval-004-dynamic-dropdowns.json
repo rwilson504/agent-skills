@@ -1,0 +1,43 @@
+{
+  "id": "eval-004",
+  "title": "Add Dynamic Dropdown Values",
+  "description": "Create a connector with cascading dynamic dropdowns where selecting a parent value dynamically populates child options.",
+  "difficulty": "intermediate",
+  "input": {
+    "userPrompt": "Create a Power Platform custom connector for a CRM service with these operations: 1) 'List Contacts' (GET /contacts) with a required 'Company' dropdown populated dynamically from GET /companies. 2) 'Create Contact' (POST /contacts) with Company dropdown and Department dropdown (populated from GET /companies/{companyId}/departments based on the selected company). 3) Internal helper operations for the dropdowns. Use API Key auth, Independent Publisher.",
+    "context": {
+      "authType": "apiKey",
+      "publisherType": "independent",
+      "dynamicValues": true,
+      "cascadingDropdowns": true
+    }
+  },
+  "expectedOutput": {
+    "files": [
+      "apiDefinition.swagger.json",
+      "apiProperties.json",
+      "readme.md"
+    ],
+    "mustContain": {
+      "apiDefinition.swagger.json": [
+        "\"x-ms-dynamic-values\"",
+        "\"operationId\": \"ListCompanies\"",
+        "\"operationId\": \"ListDepartments\"",
+        "\"x-ms-visibility\": \"internal\"",
+        "\"value-path\"",
+        "\"value-title\"",
+        "\"parameters\""
+      ]
+    }
+  },
+  "evaluationCriteria": [
+    "Helper operations (ListCompanies, ListDepartments) marked x-ms-visibility: internal",
+    "Company parameter uses x-ms-dynamic-values with operationId: ListCompanies",
+    "Department parameter uses x-ms-dynamic-values referencing ListDepartments",
+    "Department dynamic values pass companyId as a parameter (cascading)",
+    "value-path and value-title correctly map to response properties",
+    "All user-facing parameters have x-ms-summary",
+    "Response schemas fully defined",
+    "Cascading dependency is explicit in the parameters block"
+  ]
+}

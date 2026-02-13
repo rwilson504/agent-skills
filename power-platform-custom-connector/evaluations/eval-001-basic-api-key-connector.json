@@ -1,0 +1,55 @@
+{
+  "id": "eval-001",
+  "title": "Scaffold a Basic API Key Connector",
+  "description": "Create a minimal Independent Publisher connector for a REST API using API Key authentication with two GET operations.",
+  "difficulty": "beginner",
+  "input": {
+    "userPrompt": "Create a Power Platform custom connector for the JSONPlaceholder API (https://jsonplaceholder.typicode.com). It should have two operations: 'List Posts' (GET /posts) and 'Get Post by ID' (GET /posts/{id}). Use API Key authentication via an X-Api-Key header. This is an Independent Publisher connector.",
+    "context": {
+      "apiBaseUrl": "https://jsonplaceholder.typicode.com",
+      "authType": "apiKey",
+      "publisherType": "independent"
+    }
+  },
+  "expectedOutput": {
+    "files": [
+      "apiDefinition.swagger.json",
+      "apiProperties.json",
+      "readme.md"
+    ],
+    "mustContain": {
+      "apiDefinition.swagger.json": [
+        "\"swagger\": \"2.0\"",
+        "\"operationId\": \"ListPosts\"",
+        "\"operationId\": \"GetPostById\"",
+        "\"x-ms-summary\"",
+        "\"x-ms-connector-metadata\"",
+        "\"securityDefinitions\"",
+        "\"apiKey\""
+      ],
+      "apiProperties.json": [
+        "\"securestring\"",
+        "\"iconBrandColor\": \"#da3b01\"",
+        "\"publisher\""
+      ]
+    },
+    "mustNotContain": {
+      "apiDefinition.swagger.json": [
+        "\"openapi\": \"3.0"
+      ],
+      "apiProperties.json": [
+        "real-secret-value"
+      ]
+    }
+  },
+  "evaluationCriteria": [
+    "Uses Swagger 2.0 format (not OpenAPI 3.0)",
+    "Both operations have operationId, summary, description",
+    "All parameters have x-ms-summary",
+    "Response schemas defined with x-ms-summary on properties",
+    "x-ms-connector-metadata includes Website, Privacy policy, Categories",
+    "apiProperties uses securestring for API key",
+    "Brand color is #da3b01 (Independent Publisher)",
+    "readme.md includes Publisher, Prerequisites, Supported Operations, Obtaining Credentials"
+  ]
+}

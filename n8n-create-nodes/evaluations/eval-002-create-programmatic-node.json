@@ -1,0 +1,22 @@
+{
+  "id": "eval-002-create-programmatic-node",
+  "skills": ["n8n-create-nodes"],
+  "query": "Build an n8n node that connects to a custom internal API. The node needs to fetch records, transform the response by flattening nested objects, and support pagination. It should also handle errors gracefully. Use the programmatic style.",
+  "expected_behavior": [
+    "Creates a programmatic node with an async execute() method",
+    "Imports IExecuteFunctions from n8n-core and relevant types from n8n-workflow",
+    "Implements item-by-item processing loop over this.getInputData()",
+    "Uses this.getNodeParameter() to read user-configured values",
+    "Uses this.getCredentials() to retrieve API credentials",
+    "Includes continueOnFail() error handling pattern with try/catch per item",
+    "Uses constructExecutionMetaData with itemData for proper item linking",
+    "Creates a GenericFunctions.ts with apiRequest and apiRequestAllItems helpers",
+    "Implements pagination in apiRequestAllItems (offset or cursor-based)",
+    "Wraps API errors with NodeApiError",
+    "Wraps logic errors with NodeOperationError",
+    "Includes returnAll/limit parameter pair for getAll operations",
+    "Follows standard resource/operation pattern with displayOptions"
+  ],
+  "baseline_without_skill": "Agent may forget continueOnFail pattern, skip constructExecutionMetaData, implement pagination incorrectly, miss GenericFunctions helper pattern, or produce incorrect item linking.",
+  "with_skill_expected": "Agent produces a complete programmatic node with proper error handling, pagination, item linking, and GenericFunctions helpers following established n8n patterns."
+}

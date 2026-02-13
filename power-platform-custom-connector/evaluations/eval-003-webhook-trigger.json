@@ -1,0 +1,52 @@
+{
+  "id": "eval-003",
+  "title": "Build a Webhook Trigger Connector",
+  "description": "Create a connector with a webhook-based trigger that registers, receives notifications, and cleans up webhooks.",
+  "difficulty": "intermediate",
+  "input": {
+    "userPrompt": "Create a Power Platform custom connector for a project management service that triggers when a new task is created. The API supports webhooks: POST /webhooks to register (the API returns a Location header), and DELETE /webhooks/{id} to unregister. The webhook notification payload includes taskId, title, assignee, priority, and createdAt. Use API Key auth. This is an Independent Publisher connector.",
+    "context": {
+      "authType": "apiKey",
+      "publisherType": "independent",
+      "triggerType": "webhook",
+      "webhookRegistration": "POST /webhooks",
+      "webhookDeletion": "DELETE /webhooks/{id}"
+    }
+  },
+  "expectedOutput": {
+    "files": [
+      "apiDefinition.swagger.json",
+      "apiProperties.json",
+      "readme.md"
+    ],
+    "mustContain": {
+      "apiDefinition.swagger.json": [
+        "\"x-ms-trigger\": \"single\"",
+        "\"x-ms-notification-content\"",
+        "\"x-ms-notification-url\": true",
+        "\"x-ms-visibility\": \"internal\"",
+        "\"delete\"",
+        "\"operationId\"",
+        "\"taskId\"",
+        "\"title\"",
+        "\"assignee\"",
+        "\"priority\"",
+        "\"createdAt\""
+      ],
+      "apiProperties.json": [
+        "\"securestring\"",
+        "\"iconBrandColor\": \"#da3b01\""
+      ]
+    }
+  },
+  "evaluationCriteria": [
+    "POST /webhooks operation has x-ms-trigger: single",
+    "x-ms-notification-content at path level defines notification schema",
+    "Callback URL parameter has x-ms-notification-url: true and x-ms-visibility: internal",
+    "DELETE /webhooks/{id} operation defined for cleanup",
+    "DELETE operation marked x-ms-visibility: internal",
+    "Notification schema includes all required fields with x-ms-summary",
+    "x-ms-trigger-hint provides user guidance",
+    "Registration body includes callbackUrl with x-ms-notification-url"
+  ]
+}
