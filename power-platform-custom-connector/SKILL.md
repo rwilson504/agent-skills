@@ -1,4 +1,3 @@
-```skill
 ---
 name: power-platform-custom-connector
 description: Create Power Platform custom connectors for Independent Publisher or Verified Publisher certification. Use when building apiDefinition.swagger.json, apiProperties.json, writing OpenAPI 2.0 definitions with x-ms-* extensions, configuring connection parameters, adding policy templates, writing custom code (script.csx), creating webhook triggers, or preparing connectors for Microsoft certification submission to the PowerPlatformConnectors GitHub repo.
@@ -567,4 +566,3 @@ See [COMMON_MISTAKES.md](COMMON_MISTAKES.md) for a full error catalog with fixes
 - [WEBHOOK_TRIGGERS.md](WEBHOOK_TRIGGERS.md) — Webhook trigger registration, notification, and deletion patterns
 - [EXAMPLES.md](EXAMPLES.md) — Complete working connector examples for common scenarios
 - [COMMON_MISTAKES.md](COMMON_MISTAKES.md) — Error catalog with fixes and validation tips
-```
