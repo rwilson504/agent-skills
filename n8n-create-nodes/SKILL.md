@@ -29,14 +29,31 @@ Build production-ready n8n community nodes as npm packages. This skill covers bo
 
 ## Getting Started
 
-### 1. Scaffold from Starter
+> **IMPORTANT:** Always start by cloning the official n8n-nodes-starter repository. Do NOT scaffold a project from scratch. The starter provides the correct TypeScript config, build tooling, linting, and project structure that n8n expects.
+
+### 1. Clone the n8n-nodes-starter (Mandatory First Step)
 
 ```bash
-# Clone the starter repo
+# Clone the official starter — this is always the first step
 git clone https://github.com/n8n-io/n8n-nodes-starter.git n8n-nodes-<yourservice>
 cd n8n-nodes-<yourservice>
+
+# Remove the starter's git history and reinitialize
+rm -rf .git
+git init
+
+# Install dependencies
 npm install
 ```
+
+The starter repo provides:
+- Pre-configured `tsconfig.json` with the correct compiler options for n8n
+- Working `package.json` with build scripts (`build`, `dev`, `lint`, `lintfix`)
+- ESLint/Prettier configuration matching n8n conventions
+- Example node and credential files to use as a starting reference
+- Correct `n8n` object structure in `package.json` pointing to `dist/` outputs
+
+After cloning, rename/replace the example node and credential files with your own, and update `package.json` with your package name (`n8n-nodes-<yourservice>`), description, and the `n8n.nodes` / `n8n.credentials` arrays.
 
 ### 2. Required Files
 
