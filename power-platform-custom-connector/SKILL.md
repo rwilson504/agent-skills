@@ -81,6 +81,19 @@ cd independent-publisher-connectors/YourConnector
 
 **Critical:** Must be **OpenAPI 2.0** (Swagger). OpenAPI 3.0 is NOT supported.
 
+If your source API provides an OpenAPI 3.0 definition, convert it before importing:
+
+```bash
+# Option 1: api-spec-converter CLI (requires Node.js)
+npm install -g api-spec-converter
+api-spec-converter --from=openapi_3 --to=swagger_2 openapi3.yaml > apiDefinition.swagger.json
+
+# Option 2: Apimatic Transform (https://www.apimatic.io/transformer)
+# Upload your 3.0 file → select Swagger 2.0 → download
+```
+
+After conversion, manually verify the output — automated tools may not handle all Power Platform–specific extensions correctly.
+
 ```json
 {
   "swagger": "2.0",
@@ -115,7 +128,8 @@ cd independent-publisher-connectors/YourConnector
 - `title` — **Maximum 30 characters**. Cannot include the words "API", "Connector", "Copilot Studio", or any Power Platform product names. Must end with an alphanumeric character (no trailing punctuation, spaces, or special chars). Must be unique and distinguishable from existing connector titles. For Independent Publishers, use the pattern: `Connector Name (Independent Publisher)`
 - `description` — Must be **30-500 characters**. Cannot contain "API", "Copilot Studio", or Power Platform product names. Must be free of grammatical and spelling errors. Should concisely describe the main purpose and value of the connector
 - `contact` — Include `name`, `url`, and `email` with a valid email address
-- `x-ms-connector-metadata` — **Required** array with Website, Privacy policy, and Categories
+- `x-ms-connector-metadata` — **Required** array with Website, Privacy policy, and Categories. The `Categories` value must be a semicolon-delimited string from these allowed values: `AI`, `Business Management`, `Business Intelligence`, `Collaboration`, `Commerce`, `Communication`, `Content and Files`, `Data`, `Finance`, `Human Resources`, `Internet of Things`, `IT Operations`, `Lifestyle and Entertainment`, `Marketing`, `Productivity`, `Sales and CRM`, `Security`, `Social Media`, `Website`
+- `consumes` / `produces` — Always explicitly set to `["application/json"]` for JSON APIs. Do not omit these fields even if the API only handles JSON — being explicit prevents content-type mismatches
 - `schemes` — Must include `"https"` (HTTP not allowed for production connectors)
 - `host` — **Production host URL only**. Staging, dev, and test host URLs are not allowed. Base hostname only, no path segments
 
@@ -297,7 +311,7 @@ Configure auth in `apiProperties.json` under `connectionParameters` (or `connect
 | **Basic Auth** | `securestring` (x2) | N/A | Username + password |
 | **Multi-Auth** | `connectionParameterSets` | Mixed | Multiple auth options for one connector |
 
-**Note:** Multi-auth connectors use `connectionParameterSets` instead of `connectionParameters` and are **not supported in the Custom Connector Wizard** — use the paconn CLI.
+**Note:** Multi-auth connectors use `connectionParameterSets` instead of `connectionParameters` and are **not supported in the Custom Connector Wizard** — use the `pac connector` or `paconn` CLI.
 
 **API Key example (apiProperties.json):**
 
@@ -458,11 +472,75 @@ See [WEBHOOK_TRIGGERS.md](WEBHOOK_TRIGGERS.md) for complete patterns.
 - [ ] JSON uses 4-space indentation, no trailing whitespace
 - [ ] Package validated with [ConnectorPackageValidator.ps1](https://github.com/microsoft/PowerPlatformConnectors/blob/dev/scripts/ConnectorPackageValidator.ps1)
 
-### paconn CLI Deployment
+### CLI Deployment
+
+Two CLI tools can deploy custom connectors. **Power Platform CLI (`pac`)** is the modern, recommended tool. **`paconn`** is the legacy Python-based tool still used in many existing guides.
+
+| Feature | `pac connector` (Power Platform CLI) | `paconn` (Legacy Python CLI) |
+|---------|--------------------------------------|------------------------------|
+| **Install** | `winget install Microsoft.PowerPlatformCLI` or [VS Code extension](https://marketplace.visualstudio.com/items?itemName=microsoft-IsvExpTools.powerplatform-vscode) | `pip install paconn` |
+| **Auth** | `pac auth create` (interactive, service principal, device code) | `paconn login` (device code only) |
+| **Solution-aware** | Yes — `--solution-unique-name` flag | No |
+| **Scaffold** | `pac connector init` generates starter files | N/A |
+| **List connectors** | `pac connector list` | N/A |
+| **Validate swagger** | N/A (use ConnectorPackageValidator.ps1) | `paconn validate --api-def ...` |
+| **Status** | Actively maintained | Maintenance mode |
+
+#### Power Platform CLI (`pac connector`)
+
+```bash
+# Install (Windows)
+winget install Microsoft.PowerPlatformCLI
+
+# Or install via dotnet
+dotnet tool install --global Microsoft.PowerApps.CLI.Tool
+
+# Authenticate
+pac auth create --environment <environment-url-or-id>
+
+# Scaffold a new connector (generates starter apiProperties.json)
+pac connector init \
+  --connection-template OAuthAAD \
+  --generate-script-file \
+  --generate-settings-file \
+  --outputDirectory MyConnector
+
+# List connectors in current environment
+pac connector list
+
+# Create a connector
+pac connector create \
+  --api-definition-file apiDefinition.swagger.json \
+  --api-properties-file apiProperties.json
+
+# Create with icon, custom code, and add to a solution
+pac connector create \
+  --api-definition-file apiDefinition.swagger.json \
+  --api-properties-file apiProperties.json \
+  --icon-file icon.png \
+  --script-file script.csx \
+  --solution-unique-name MySolution
+
+# Update an existing connector
+pac connector update \
+  --api-definition-file apiDefinition.swagger.json \
+  --api-properties-file apiProperties.json \
+  --connector-id <connector-id>
+
+# Download a connector's files
+pac connector download \
+  --connector-id <connector-id> \
+  --outputDirectory ./MyConnector
+```
+
+#### paconn CLI (Legacy)
 
 ```bash
 # Install the CLI
 pip install paconn
+
+# Authenticate
+paconn login
 
 # Create a connector
 paconn create --api-def apiDefinition.swagger.json --api-prop apiProperties.json
@@ -474,7 +552,15 @@ paconn create --api-def apiDefinition.swagger.json --api-prop apiProperties.json
 # Update an existing connector
 paconn update --api-def apiDefinition.swagger.json --api-prop apiProperties.json \
   --connector-id <connector-id>
+
+# Validate swagger definition
+paconn validate --api-def apiDefinition.swagger.json
+
+# Download connector files
+paconn download -e <environment-id> -c <connector-id>
 ```
+
+> **Tip:** Both CLIs support a `settings.json` file to store environment, connector ID, and file paths — avoiding repetitive flags on every command. When using `paconn`, always download first as a backup before running `update`.
 
 ### README Template
 
@@ -503,9 +589,130 @@ Step-by-step instructions for getting API credentials.
 - Maximum 1000 items per response
 
 ## Deployment Instructions
-Run the following commands:
+Run one of the following commands:
+\`pac connector create --api-definition-file apiDefinition.swagger.json --api-properties-file apiProperties.json\`
+or (legacy):
 \`paconn create --api-def apiDefinition.swagger.json --api-prop apiProperties.json\`
 ```
+
+---
+
+## Pagination Support
+
+For connectors to leverage Power Platform's **built-in paging**, the API must return responses following this pattern:
+
+```json
+{
+  "nextLink": "https://api.example.com/items?page=2",
+  "value": [
+    { "id": "1", "name": "Item 1" },
+    { "id": "2", "name": "Item 2" }
+  ]
+}
+```
+
+**Requirements:**
+- `value` — Array of result items (required on every page)
+- `nextLink` — Full URI to the next page (present only when more pages exist; omit on the final page)
+- Return HTTP **200** for all paginated responses
+
+When the last page is reached, omit `nextLink` entirely — Power Platform stops paging automatically.
+
+**If the API uses non-standard pagination** (e.g., `page`/`limit` query parameters, cursor-based, or offset-based), you have two options:
+1. Use the `updatenextlink` **policy template** to rewrite the pagination URL into the `nextLink` format Power Platform expects
+2. Build pagination logic in a **Power Automate flow** using a Do Until loop that increments the page parameter until no more results are returned
+
+Add `limit` and `page` parameters to operations that support pagination:
+
+```json
+{
+  "name": "limit",
+  "in": "query",
+  "type": "integer",
+  "required": false,
+  "x-ms-summary": "Page Size",
+  "description": "The number of items to return per page."
+},
+{
+  "name": "page",
+  "in": "query",
+  "type": "integer",
+  "required": false,
+  "x-ms-summary": "Page Number",
+  "description": "The page number of results to retrieve."
+}
+```
+
+---
+
+## Using AI to Accelerate Development
+
+Leverage AI assistants to generate boilerplate OpenAPI extensions and documentation. This is especially valuable when an API has many operations or parameters that each need `x-ms-summary`, `description`, and `title` attributes.
+
+**Generating OpenAPI extensions prompt:**
+
+> Acting as a Power Platform developer, I would like your assistance in writing a custom connector. I will provide each path for the API. Include the following:
+> - A `summary` and `description` attribute for each path
+> - A `description` and `x-ms-summary` attribute for each path parameter and response property; the `x-ms-summary` should read like a title for the name field
+> - A `title`, `description`, and `x-ms-summary` attribute for each response property; the `title` and `x-ms-summary` will be the same
+> - If the `name` attribute is used in the `description`, then update the description to use the new `title` attribute
+>
+> Please update the file with those additional attributes and provide it back to me. Here is the first path:
+> ```json
+> <paste path here>
+> ```
+
+**Generating README prompt:**
+
+> Acting as a technical writer, create a README.MD file for the custom connector. Below is the template — do not deviate from it. When generating the operations, include all input attributes and use the friendly names.
+>
+> TEMPLATE:
+> ```
+> # {Connector Title}
+> {Description from the OpenAPI info.description}
+>
+> ## Publisher: {Your Name}
+>
+> ## Prerequisites
+> {How to get an account and API credentials}
+>
+> ## Supported Operations
+> ### {Operation Summary}
+> {Operation description}
+> - **Inputs:** `{Param x-ms-summary}`: {param description}
+> - **Outputs:** `{Property title}`: {property description}
+>
+> ## Obtaining Credentials
+> {Step-by-step instructions}
+>
+> ## Known Issues and Limitations
+> {Current limitations or "Currently, no known issues or limitations exist."}
+> ```
+>
+> OPENAPI FILE:
+> ```json
+> <paste full apiDefinition.swagger.json>
+> ```
+
+**Tips:**
+- Process paths individually for APIs with many operations — large files may exceed context limits
+- Always review and validate AI output against the coding standards before submission
+- AI works best when the source API has comprehensive documentation
+
+---
+
+## Testing and Debugging
+
+After importing the connector into Power Platform via the Custom Connector Wizard or CLI:
+
+1. **Test every operation** in the connector's Test tab — run at least **10 successful calls per operation**
+2. **Use the Swagger Editor toggle** in the custom connector editor for quick inline edits to fix validation errors
+3. **Common schema validation fixes:**
+   - **Remove `required` arrays from response schemas** — if the API doesn't always return every field, the `required` constraint causes validation failures. Keep `required` on request body schemas but remove from response schemas
+   - **Fix type mismatches** — if the API returns a string where the schema says integer (or vice versa), update the schema to match actual API behavior
+   - **Remove empty schema properties** — empty `properties: {}` on responses can cause issues
+4. **Re-test after every change** — iterate until all operations pass cleanly
+5. **Create test flows** in Power Automate using 3+ unique operations to verify end-to-end behavior and capture screenshots for PR submission
 
 ---
 
@@ -534,6 +741,9 @@ Run the following commands:
 - Use `"redirectMode": "GlobalPerConnector"` for all OAuth connectors
 - Use **4-space soft tabs** and remove trailing whitespace in JSON files
 - Use only **production** host URLs (no staging, dev, or test URLs)
+- Explicitly set `consumes` and `produces` to `["application/json"]` — don't rely on defaults
+- Back up connector files using source control before running `update` commands
+- For APIs with multiple cloud endpoints (e.g., commercial, GCC, GCC High, DoD), use the `dynamichosturl` policy template to let users select the correct endpoint at connection time
 
 **Don't:**
 - Use OpenAPI 3.0 — must be Swagger 2.0
@@ -552,6 +762,9 @@ Run the following commands:
 - Include body or form data parameters on GET operations
 - Use `"redirectMode": "Global"` — must be `"GlobalPerConnector"` (mandatory since Feb 2024)
 - Exceed 30 characters for connector title
+- Include `required` arrays on response schemas — they cause validation failures when the API omits optional fields
+
+**Known limitation:** When using `paconn`, the `stackOwner` property in `apiProperties.json` prevents `paconn update` from working. Workaround: maintain two versions of your apiProperties — one with `stackOwner` for certification submission and one without for local environment updates via `paconn`. The `pac connector` CLI does not have this limitation.
 
 See [COMMON_MISTAKES.md](COMMON_MISTAKES.md) for a full error catalog with fixes.
 
