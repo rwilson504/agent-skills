@@ -7,22 +7,26 @@ Reference for creating n8n credential types. See [SKILL.md](SKILL.md) for main s
 ## Credential Class Structure
 
 ```typescript
-import {
+import type {
   IAuthenticateGeneric,
   ICredentialTestRequest,
   ICredentialType,
   INodeProperties,
+  Icon,
 } from 'n8n-workflow';
 
 export class MyServiceApi implements ICredentialType {
   name = 'myServiceApi';                 // camelCase, referenced in node's credentials[]
   displayName = 'My Service API';        // Shown in credential selector
+  icon: Icon = 'file:myservice.svg';     // SVG icon in credentials/ folder (REQUIRED by linter)
   documentationUrl = 'myService';        // Links to n8n docs or custom URL
   properties: INodeProperties[] = [];    // Auth fields shown to user
   authenticate: IAuthenticateGeneric;    // How auth is injected into requests
   test: ICredentialTestRequest;          // Endpoint to verify credentials
 }
 ```
+
+> **Note:** The linter requires an `icon` property on credential classes. Place a copy of your SVG icon in the `credentials/` folder and reference it as `'file:myservice.svg'`. Use `import type` for `Icon` since it's only used as a type annotation.
 
 ---
 
@@ -32,6 +36,7 @@ export class MyServiceApi implements ICredentialType {
 export class MyServiceApi implements ICredentialType {
   name = 'myServiceApi';
   displayName = 'My Service API';
+  icon: Icon = 'file:myservice.svg';
   properties: INodeProperties[] = [
     {
       displayName: 'API Key',
@@ -253,6 +258,7 @@ The `authenticate.properties` object supports these locations:
 
 | Mistake | Fix |
 |---------|-----|
+| Missing `icon` property on credential | Add `icon: Icon = 'file:myservice.svg'` and place SVG in credentials/ |
 | Missing `typeOptions: { password: true }` on secrets | Always mask API keys, tokens, passwords |
 | Wrong expression: `$credential.apiKey` | Use `$credentials.apiKey` (plural) |
 | Forgot to list credential in `package.json` | Add to `n8n.credentials` array |

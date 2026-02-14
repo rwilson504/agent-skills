@@ -77,19 +77,23 @@ options: [
 ]
 ```
 
-### 7. Using string 'main' instead of NodeConnectionType
+### 7. NodeConnectionType.Main — type-only in some versions
 
-**Wrong:**
+In some `n8n-workflow` versions, `NodeConnectionType` is exported **only as a type** (not a runtime value). Using it as a value will cause a TypeScript error: `'NodeConnectionType' cannot be used as a value because it was exported using 'export type'`.
+
+**Preferred (works everywhere):**
+```typescript
+inputs: [NodeConnectionType.Main],
+outputs: [NodeConnectionType.Main],
+```
+
+**Fallback (if NodeConnectionType is type-only in your n8n-workflow version):**
 ```typescript
 inputs: ['main'],
 outputs: ['main'],
 ```
 
-**Fix:**
-```typescript
-inputs: [NodeConnectionType.Main],
-outputs: [NodeConnectionType.Main],
-```
+Check your installed `n8n-workflow` version. If the import fails at build time, use the string fallback.
 
 ### 8. Trigger node with non-empty inputs
 
@@ -232,6 +236,124 @@ options: [{
 
 ---
 
+## Linter Errors (n8n-node lint)
+
+### 17. Using deprecated request APIs
+
+The `@n8n/node-cli` linter flags `IRequestOptions` and `requestWithAuthentication` as deprecated.
+
+**Wrong:**
+```typescript
+import { IRequestOptions } from 'n8n-workflow';
+
+const options: IRequestOptions = {
+  method: 'GET',
+  uri: 'https://api.example.com/items',
+  json: true,
+};
+const response = await this.helpers.requestWithAuthentication.call(this, 'myServiceApi', options);
+```
+
+**Fix:** Use `IHttpRequestOptions` and `httpRequestWithAuthentication`:
+```typescript
+import type { IHttpRequestOptions } from 'n8n-workflow';
+
+const options: IHttpRequestOptions = {
+  method: 'GET',
+  url: 'https://api.example.com/items',  // 'url' not 'uri'
+  // No 'json: true' needed — JSON is the default
+};
+const response = await this.helpers.httpRequestWithAuthentication.call(this, 'myServiceApi', options);
+```
+
+### 18. Missing `usableAsTool: true` in description
+
+The linter recommends adding `usableAsTool: true` so the node can be used as an AI agent tool.
+
+**Fix:** Add to your node description:
+```typescript
+description: INodeTypeDescription = {
+  // ...
+  usableAsTool: true,
+  // ...
+};
+```
+
+### 19. Wrong description text for list operations
+
+The linter enforces that list/getAll operation descriptions start with **"Get many"**, not "Get all" or "List".
+
+**Wrong:**
+```typescript
+{ name: 'Get All', value: 'getAll', action: 'Get all contacts', description: 'Get all contacts' }
+```
+
+**Fix:**
+```typescript
+{ name: 'Get Many', value: 'getAll', action: 'Get many contacts', description: 'Get a list of many contacts' }
+```
+
+### 20. Missing `import type` for type-only imports
+
+The linter enforces `import type` for symbols used only as types (not as runtime values).
+
+**Wrong:**
+```typescript
+import { INodeType, INodeTypeDescription, INodeExecutionData } from 'n8n-workflow';
+// ↑ INodeExecutionData only used in type annotations, not at runtime
+```
+
+**Fix:**
+```typescript
+import type { INodeExecutionData } from 'n8n-workflow';
+import { INodeType, INodeTypeDescription } from 'n8n-workflow';
+```
+
+**Rule of thumb:** If a symbol is only used in `: TypeName` annotations, function signatures, or `as TypeName` casts, import it with `import type`. If it's used as a value (e.g., `throw new NodeOperationError(...)`, `NodeConnectionType.Main`), use a regular import.
+
+### 21. Missing icon on credential class
+
+The linter requires credentials to have an `icon` property. Without it, credentials display without a visual identifier.
+
+**Fix:** Add an icon property to your credential class and place the SVG in the credentials folder:
+```typescript
+import type { Icon } from 'n8n-workflow';
+
+export class MyServiceApi implements ICredentialType {
+  name = 'myServiceApi';
+  displayName = 'My Service API';
+  icon: Icon = 'file:myservice.svg';  // SVG must be in credentials/ folder
+  // ...
+}
+```
+
+### 22. `no-credential-reuse` false positive on Windows drive-root paths
+
+The `@n8n/eslint-plugin-community-nodes` `no-credential-reuse` rule has a bug when the project sits at the first directory level under a Windows drive root (e.g., `D:\my-project`). The `findPackageJson` function's while-loop condition exits before checking the project directory because `path.parse('D:\\my-project').dir === path.parse('D:\\my-project').root` (both are `D:\`).
+
+**Workaround:** Either move the project deeper (e.g., `D:\projects\my-project`) or add an eslint-disable block:
+```typescript
+/* eslint-disable @n8n/community-nodes/no-credential-reuse */
+credentials: [
+  { name: 'myServiceApi', required: true },
+],
+/* eslint-enable @n8n/community-nodes/no-credential-reuse */
+```
+
+---
+
+## Publishing Errors
+
+### 23. `prepublishOnly` script blocks `npm publish`
+
+The n8n-nodes-starter includes a `prepublishOnly` script that runs `n8n-node prerelease`, which blocks direct `npm publish` and tells you to use `npm run release` instead.
+
+**Options:**
+1. Use `npm run release` (uses release-it for versioning + publish)
+2. Remove the `prepublishOnly` script from `package.json` and run `npm publish --access public` directly
+
+---
+
 ## Quick Fix Reference
 
 | Error | Fix |
@@ -242,3 +364,10 @@ options: [{
 | Item linking broken | Add `constructExecutionMetaData` with `{ itemData: { item: i } }` |
 | displayOptions not working | Verify resource/operation values match exactly (case-sensitive) |
 | Expression not resolving | Use `=` prefix: `'=/path/{{$parameter.id}}'` not `'/path/{{$parameter.id}}'` |
+| `requestWithAuthentication` deprecated | Switch to `httpRequestWithAuthentication` with `IHttpRequestOptions` |
+| `uri` property error | Use `url` instead of `uri` in `IHttpRequestOptions` |
+| Missing `usableAsTool` lint warning | Add `usableAsTool: true` to node description |
+| "Get All" lint error | Change to "Get Many" / "Get many" in name, action, description |
+| `no-credential-reuse` false positive | Move project deeper than drive root, or eslint-disable |
+| `prepublishOnly` blocks publish | Remove the script or use `npm run release` |
+| `NodeConnectionType` type-only error | Use string `'main'` as fallback |

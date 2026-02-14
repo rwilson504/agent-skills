@@ -78,6 +78,7 @@ After cloning, rename/replace the example node and credential files with your ow
   "version": "0.1.0",
   "n8n": {
     "n8nNodesApiVersion": 1,
+    "strict": true,
     "nodes": [
       "dist/nodes/MyService/MyService.node.js"
     ],
@@ -109,6 +110,7 @@ export class MyService implements INodeType {
     defaults: { name: 'My Service' },
     inputs: [NodeConnectionType.Main],
     outputs: [NodeConnectionType.Main],
+    usableAsTool: true,
     credentials: [
       { name: 'myServiceApi', required: true },
     ],
@@ -133,6 +135,7 @@ export class MyService implements INodeType {
 | `defaults` | `object` | `{ name: 'Display Name' }` |
 | `inputs` | `array` | `[NodeConnectionType.Main]` — empty `[]` for triggers |
 | `outputs` | `array` | `[NodeConnectionType.Main]` |
+| `usableAsTool` | `boolean` | `true` — enables use as AI agent tool (recommended) |
 | `credentials` | `array` | `[{ name: 'credName', required: true }]` |
 | `properties` | `INodeProperties[]` | UI fields — resources, operations, parameters |
 
@@ -224,6 +227,7 @@ properties: [
 - Always set `noDataExpression: true` on resource and operation selectors
 - Always include `action` on each operation option (used for the node action list)
 - Standard operation values: `create`, `get`, `getAll`, `update`, `delete`, `upsert`
+- Name list operations **"Get Many"** (not "Get All") — the linter enforces this
 - Use `displayOptions.show` to conditionally display fields per resource/operation
 
 ---
@@ -378,8 +382,10 @@ export class MyService implements INodeType {
 | `this.helpers.returnJsonArray(data)` | Wrap response as `INodeExecutionData[]` |
 | `this.helpers.constructExecutionMetaData(data, { itemData })` | Link output to input items |
 | `this.continueOnFail()` | Check if user enabled "Continue On Fail" |
-| `this.helpers.request(options)` | Make HTTP request |
-| `this.helpers.requestWithAuthentication('credName', options)` | Authenticated HTTP request |
+| `this.helpers.request(options)` | Make HTTP request (unauthenticated) |
+| `this.helpers.httpRequestWithAuthentication('credName', options)` | Authenticated HTTP request (use `IHttpRequestOptions` with `url` not `uri`) |
+
+> **Note:** `this.helpers.requestWithAuthentication` and `IRequestOptions` are **deprecated**. Always use `httpRequestWithAuthentication` with `IHttpRequestOptions` instead. The new interface uses `url` (not `uri`) and defaults to JSON parsing (no `json: true` needed).
 
 ---
 
@@ -535,17 +541,25 @@ n8n start
 
 ### Publishing to npm
 
+**Important:** The n8n-nodes-starter includes a `prepublishOnly` script (`n8n-node prerelease`) that blocks direct `npm publish`. You have two options:
+
 ```bash
+# Option 1: Remove prepublishOnly from package.json, then:
 npm login
-npm publish
+npm publish --access public
+
+# Option 2: Use the built-in release flow (uses release-it):
+npm run release
 ```
 
 After publishing, users install via: **Settings → Community Nodes → Install → `n8n-nodes-myservice`**
 
 Ensure your `package.json` has:
 - `"n8n"` object with `nodes` and `credentials` arrays pointing to `dist/` files
-- Correct `main` and `files` fields
+- `"n8n"."strict": true` for community node linting compliance
+- `"files": ["dist"]` to publish only compiled output
 - `"keywords": ["n8n-community-node-package"]`
+- Author, repository, license, and homepage fields populated
 
 ---
 
@@ -557,7 +571,13 @@ Ensure your `package.json` has:
 - Use `constructExecutionMetaData` with `itemData` for proper item linking
 - Implement `continueOnFail()` in every execute loop
 - Create `GenericFunctions.ts` for shared API request helpers
-- Use `NodeConnectionType.Main` instead of string `'main'`
+- Use `NodeConnectionType.Main` instead of string `'main'` (fall back to `'main'` if your n8n-workflow version exports it as type-only)
+- Add `usableAsTool: true` to node descriptions for AI agent compatibility
+- Use `httpRequestWithAuthentication` (not the deprecated `requestWithAuthentication`)
+- Use `import type` for symbols only used in type annotations
+- Name list operations "Get Many" / "Get many" (not "Get All")
+- Add `icon` property to credential classes
+- Set `"strict": true` in the `n8n` config of `package.json`
 - Use `typeOptions: { password: true }` for secret fields in credentials
 - Use `returnAll`/`limit` pair for list operations
 
