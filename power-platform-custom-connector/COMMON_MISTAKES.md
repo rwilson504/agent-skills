@@ -611,6 +611,37 @@ var response = await this.Context.SendAsync(
 "host": "api.myservice.com"
 ```
 
+### 33. Using collectionFormat "multi" on Array Parameters
+
+**Mistake:** Defining an array query parameter with `"collectionFormat": "multi"` in the OpenAPI definition.
+
+**Symptoms:** Import fails with: `The 'collectionFormat' keyword value 'Multi' is not supported.`
+
+**Fix:** Convert the array parameter to a string type and accept comma-separated values. Then use custom code (`script.csx`) to split the comma-separated string back into repeated query parameters (`?param=a&param=b`) before forwarding the request.
+
+```json
+// ✗ Not supported by Custom Connector wizard
+{
+  "name": "services[]",
+  "in": "query",
+  "type": "array",
+  "collectionFormat": "multi",
+  "items": { "type": "string" },
+  "description": "List of services to filter by."
+}
+
+// ✓ Use string with comma-separated values + custom code
+{
+  "name": "services[]",
+  "in": "query",
+  "type": "string",
+  "description": "A comma-separated list of services to filter by.",
+  "x-ms-summary": "Services"
+}
+```
+
+See [CUSTOM_CODE.md](CUSTOM_CODE.md) Pattern 5 for the complete `script.csx` implementation.
+
 ---
 
 ## Validation Tips

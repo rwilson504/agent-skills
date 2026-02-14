@@ -209,6 +209,7 @@ Define actions and triggers in the `paths` object:
 - **Path parameters** — All path parameters (e.g., `/items/{itemId}`) **must** include `"x-ms-url-encoding": "single"` and **must** be marked `"required": true`
 - **Reserved names** — A parameter cannot be named `connectionId` (reserved by the platform)
 - **GET operations** — Cannot have body or form data parameters
+- **`collectionFormat: "multi"` is NOT supported** — The Custom Connector wizard rejects array parameters with `"collectionFormat": "multi"`. Workaround: change the parameter type from `array` to `string`, accept comma-separated values, and use custom code (`script.csx`) to split them into repeated query parameters. See [CUSTOM_CODE.md](CUSTOM_CODE.md) Pattern 5 and [COMMON_MISTAKES.md](COMMON_MISTAKES.md) entry #33
 - **Remove empty properties** from operations and parameters unless they are explicitly required
 
 ---
