@@ -203,9 +203,26 @@ Define actions and triggers in the `paths` object:
 - `summary` — **Required** for every operation. Must be sentence case, **80 characters or fewer**, and must **end with an alphanumeric character** (no trailing punctuation, spaces, or special characters). Must contain only alphanumeric characters or parentheses — **no slashes (`/`)**. As a naming convention: start with **"List"** when the operation returns multiple records, **"Get"** when it returns a single record. For triggers, use the format: **"When a [event]"** (e.g., "When a task is created")
 - `summary` and `description` **must not have the same text** — the description should provide additional information beyond the summary
 - `description` — **Required** for every operation and parameter. Must be a **full, descriptive sentence ending in punctuation**. Must not contain URLs or HTML markup. Must be in English and free of grammatical or spelling errors
+- **Input description UX style** — Parameter descriptions are shown as helper text in Power Automate/Power Apps. Keep them concise and action-oriented: avoid repetitive prefixes like "Filter the response by"; prefer short forms like "Location code (ISO-3).", "Reference period start (inclusive).", or "Select from dropdown." for long enum lists
+
+### Description Style Examples (Parameters)
+
+Use this quick mapping when rewriting parameter helper text for designer UX.
+
+| Pattern | Avoid | Prefer |
+|---|---|---|
+| Generic filter prefix | `Filter the response by location code.` | `Location code (ISO-3).` |
+| Date lower bound | `Filter entries to include rows where the reference period overlaps with or extends beyond this date...` | `Reference period start (inclusive).` |
+| Date upper bound | `Filter entries to include rows where the reference period overlaps with or begins prior to this date...` | `Reference period end (inclusive).` |
+| Boolean flag | `The has_hrp flag. The has_hrp flag indicates whether...` | `Whether the location has a Humanitarian Response Plan (HRP).` |
+| Enum (short list) | `... available values are described in documentation.` | `Allowed values: csv, json.` |
+| Enum (long list/dropdown) | `Allowed values: value1, value2, value3, ...` | `Select from dropdown.` |
+| Non-clickable references | `See https://... for details.` | `See location metadata.` |
+
 - `x-ms-summary` — **Required** on every parameter and schema property. Use Title Case, matching the parameter `name` but without hyphens or underscores (e.g., `name: "form_name"` → `x-ms-summary: "Form Name"`)
 - `x-ms-visibility` — Controls visibility: `"important"` (always shown), `"advanced"` (hidden under menu), `"internal"` (hidden from user)
 - **Response schemas** — Each operation should have only **one response with a schema**, which should be the `2XX` success response (200 or 201). The `default` response should **NOT** have a schema definition — schemas belong on expected success responses only. For error responses (`4xx`, `5xx`), provide meaningful descriptions but **remove the schema property**. Empty response schemas are not allowed (except when dynamic). Empty operations are not allowed — every operation must have at least one response
+- **Boolean filters** — Parameters that represent true/false flags (for example `has_hrp`, `in_gho`, `is_hxl`, and origin/asylum variants) should use `"type": "boolean"` instead of `"string"`
 - **Path parameters** — All path parameters (e.g., `/items/{itemId}`) **must** include `"x-ms-url-encoding": "single"` and **must** be marked `"required": true`
 - **Reserved names** — A parameter cannot be named `connectionId` (reserved by the platform)
 - **Swagger 2.0 parameter typing** — Every non-body parameter (`in: query`, `header`, `path`, `formData`) must include a `type` field. Missing `type` frequently causes APIM import failures such as `JSON is valid against no schemas from 'oneOf'`
@@ -222,9 +239,12 @@ Define actions and triggers in the `paths` object:
 - Confirm every array schema has explicit `items` typing/ref metadata (no `"items": {}` placeholders)
 - Confirm no `readOnly: true` schema properties are listed in any definition `required` array
 - Confirm there are no empty parameter/response/schema objects such as `{}` after automated transforms
+- Confirm boolean-like flags (`has_*`, `in_*`, `is_*`) are typed as `boolean` where semantically correct
+- Confirm parameter descriptions are concise helper text (no repetitive "Filter the response by" boilerplate)
 - Parse-check the file before deploy (`python -c "import json;json.load(open('apiDefinition.swagger.json',encoding='utf-8'))"`) to catch malformed JSON and trailing/extra data
 - Check for missing operation descriptions (`python -c "import json; s=json.load(open('apiDefinition.swagger.json',encoding='utf-8')); missing=[(m.upper(),p,o.get('operationId')) for p,ms in s.get('paths',{}).items() for m,o in ms.items() if isinstance(o,dict) and not (isinstance(o.get('description'),str) and o.get('description').strip())]; print('missing_description_count',len(missing)); [print(x) for x in missing[:200]]"`)
 - If converting from OpenAPI 3.x, run a second pass to ensure nullable fields were translated into valid Swagger 2.0 schemas (avoid leaving properties with only `description`/`title`)
+- Confirm nullable primitives use Swagger 2.0-compatible patterns (`type` + `x-nullable: true`) and avoid OpenAPI 3 style unions like `"type": ["integer", "null"]`
 
 ---
 
@@ -240,6 +260,7 @@ Define reusable data models in the `definitions` object. These are referenced vi
 - Keep all other existing properties of the definition intact
 - **Remove `default` values** from objects inside `properties` (defaults belong on operation parameters, not schema definitions)
 - If a `number` or `integer` property's description mentions minimum or maximum values, add explicit `minimum` and/or `maximum` properties to the schema
+- **Nullable fields (Swagger 2.0)** — Represent nullable scalar properties with `x-nullable: true` on the property schema. If upstream data can omit or null a field, remove that field from response `required` arrays. Do not use array `type` unions such as `["integer", "null"]`
 
 ```json
 "definitions": {
@@ -847,9 +868,12 @@ After `pac connector create` or `pac connector update`:
 - Start summaries with **"List"** (returns many) or **"Get"** (returns one); for triggers: **"When a [event]"**
 - Make sure `summary` and `description` have **different text** on every operation/parameter
 - Write `description` as full sentences ending in punctuation — no URLs
+- Keep parameter helper text concise for designer UX; avoid repetitive boilerplate and long non-clickable references
 - Add `title` (Title Case) and `description` (full sentence) to all definition properties (skip for `$ref`)
 - Add `"x-ms-url-encoding": "single"` and `"required": true` to all path parameters
 - Add `minimum`/`maximum` when number/integer ranges are known
+- Use `type: "boolean"` for true/false inputs instead of `string` flags
+- For nullable response primitives, use `x-nullable: true` and remove from `required` when null/omitted is possible
 - Ensure all text is in English and free of grammatical/spelling errors
 - Capitalize abbreviations to avoid translation issues
 - Use `"redirectMode": "GlobalPerConnector"` for all OAuth connectors
@@ -877,6 +901,7 @@ After `pac connector create` or `pac connector update`:
 - Use `"redirectMode": "Global"` — must be `"GlobalPerConnector"` (mandatory since Feb 2024)
 - Exceed 30 characters for connector title
 - Include `required` arrays on response schemas — they cause validation failures when the API omits optional fields
+- Use OpenAPI 3 nullable union syntax in Swagger 2.0 files (for example `"type": ["integer", "null"]`)
 
 **Known limitation:** When using `paconn`, the `stackOwner` property in `apiProperties.json` prevents `paconn update` from working. Workaround: maintain two versions of your apiProperties — one with `stackOwner` for certification submission and one without for local environment updates via `paconn`. The `pac connector` CLI does not have this limitation.
 
@@ -899,6 +924,15 @@ Use this section as a lightweight changelog for practical field learnings that s
 - **Deployment discipline:** When a connector has `script.csx`, include `--script-file script.csx` on every `pac connector update`; otherwise code changes might not be published with schema updates.
 - **Verification approach:** Post-deploy semantic comparison is more reliable than byte-for-byte diff because downloaded files may include platform-managed differences.
 - **WADL hardening:** In addition to property typing, Power Apps WADL conversion also requires typed array `items` and rejects `readOnly` properties in `required` arrays.
+
+### 2026-02-25: HDX Connector UX & Nullability Session
+
+- **Input description UX:** Power Automate surfaces parameter `description` as helper text; concise descriptions materially improve usability. Prefer short guidance over repeated phrases like "Filter the response by...".
+- **No dead links in helper text:** URLs/HTML anchors in parameter descriptions are not useful in designer helper text; remove them from input descriptions.
+- **Enum helper strategy:** For short enums, include values inline (`Allowed values: ...`). For long enums shown as dropdowns, use concise text such as "Select from dropdown.".
+- **Boolean correctness:** Converted boolean-like query flags (`has_hrp`, `in_gho`, `origin_*`, `asylum_*`, `is_hxl`) from `string` to `boolean` to align schema with runtime semantics.
+- **Swagger 2.0 nullable safety:** Avoid `type` arrays (for example `["integer", "null"]`) because they can pass some validators but fail connector import/parsing; use `x-nullable: true` with scalar `type` instead.
+- **Required vs nullable:** If upstream API returns `null` or omits fields, remove those fields from response `required` arrays rather than coercing values (for example, avoid null→0 data mutation unless explicitly desired).
 
 ---
 
