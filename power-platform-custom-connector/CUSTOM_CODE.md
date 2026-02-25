@@ -246,6 +246,81 @@ public class Script : ScriptBase
 }
 ```
 
+### Pattern 5: Multi-Value Query Parameter Workaround
+
+Power Platform does not support `collectionFormat: "multi"` on array parameters. The workaround is to accept a comma-separated string and split it into repeated query parameters in custom code.
+
+In the OpenAPI definition, change the parameter from `array` to `string`:
+
+```json
+{
+  "name": "services[]",
+  "in": "query",
+  "type": "string",
+  "description": "A comma-separated list of services to filter by.",
+  "x-ms-summary": "Services"
+}
+```
+
+In `script.csx`, split the comma-separated values and rebuild the query string:
+
+```csharp
+public class Script : ScriptBase
+{
+    // Map operationId → parameter names that need multi-value splitting
+    private readonly Dictionary<string, string[]> specialHandlingMap =
+        new Dictionary<string, string[]>
+        {
+            { "GetFacilities", new[] { "facilityIds", "services[]", "bbox[]" } },
+            { "GetNearbyFacilities", new[] { "services[]" } }
+        };
+
+    public override async Task<HttpResponseMessage> ExecuteAsync()
+    {
+        var operationId = this.Context.OperationId;
+
+        if (specialHandlingMap.TryGetValue(operationId, out var queryParamNames))
+        {
+            var query = HttpUtility.ParseQueryString(
+                this.Context.Request.RequestUri.Query);
+
+            foreach (var paramName in queryParamNames)
+            {
+                if (query.AllKeys.Contains(paramName))
+                {
+                    var values = query[paramName]
+                        .Split(',')
+                        .Select(v => v.Trim())
+                        .ToArray();
+
+                    query.Remove(paramName);
+                    foreach (var value in values)
+                    {
+                        query.Add(paramName, value);
+                    }
+                }
+            }
+
+            var uriBuilder = new UriBuilder(this.Context.Request.RequestUri)
+            {
+                Query = query.ToString()
+            };
+            this.Context.Request.RequestUri = uriBuilder.Uri;
+        }
+
+        return await this.Context.SendAsync(
+            this.Context.Request, this.CancellationToken
+        ).ConfigureAwait(false);
+    }
+}
+```
+
+**Key points:**
+- The `specialHandlingMap` lets you centrally define which operations and parameters need splitting
+- Always call `this.Context.SendAsync()` to forward the modified request — custom code replaces the default pipeline
+- Update parameter descriptions to instruct users: "A comma-separated list of..."
+- This pattern works with `System.Web.HttpUtility` which is available in the supported namespaces
+
 ---
 
 ## Base64 OperationId Workaround

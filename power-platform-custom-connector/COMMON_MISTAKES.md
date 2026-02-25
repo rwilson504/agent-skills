@@ -611,6 +611,200 @@ var response = await this.Context.SendAsync(
 "host": "api.myservice.com"
 ```
 
+### 33. Using collectionFormat "multi" on Array Parameters
+
+**Mistake:** Defining an array query parameter with `"collectionFormat": "multi"` in the OpenAPI definition.
+
+**Symptoms:** Import fails with: `The 'collectionFormat' keyword value 'Multi' is not supported.`
+
+**Fix:** Convert the array parameter to a string type and accept comma-separated values. Then use custom code (`script.csx`) to split the comma-separated string back into repeated query parameters (`?param=a&param=b`) before forwarding the request.
+
+```json
+// ✗ Not supported by Custom Connector wizard
+{
+  "name": "services[]",
+  "in": "query",
+  "type": "array",
+  "collectionFormat": "multi",
+  "items": { "type": "string" },
+  "description": "List of services to filter by."
+}
+
+// ✓ Use string with comma-separated values + custom code
+{
+  "name": "services[]",
+  "in": "query",
+  "type": "string",
+  "description": "A comma-separated list of services to filter by.",
+  "x-ms-summary": "Services"
+}
+```
+
+See [CUSTOM_CODE.md](CUSTOM_CODE.md) Pattern 5 for the complete `script.csx` implementation.
+
+### 34. Missing `type` on Non-Body Swagger 2.0 Parameters
+
+**Mistake:** Defining query/header/path/formData parameters without a `type` field in Swagger 2.0.
+
+**Symptoms:** APIM import/deployment fails with validation errors like:
+- `JSON is valid against no schemas from 'oneOf'`
+- `The input OpenAPI file is not valid for the OpenAPI 2.0 specification`
+
+**Fix:** Ensure every non-body parameter includes `type` (for example, `string`, `integer`, `boolean`, `number`):
+
+```json
+// ✗ Missing type (invalid in Swagger 2.0)
+{
+  "name": "location_code",
+  "in": "query",
+  "required": false,
+  "description": "Filter by location code."
+}
+
+// ✓ Valid non-body parameter
+{
+  "name": "location_code",
+  "in": "query",
+  "type": "string",
+  "required": false,
+  "description": "Filter by location code.",
+  "x-ms-summary": "Location Code"
+}
+```
+
+### 35. Treating `CustomScriptProvisioningFailed` as a Permanent Failure
+
+**Mistake:** Changing connector files immediately after a failed `pac connector update` with a custom script provisioning error.
+
+**Symptoms:** Update fails with `CustomScriptProvisioningFailed`, often with an upstream HTML 502 gateway/proxy error.
+
+**Fix:** Retry the same command after a short delay before changing files:
+
+```bash
+# Retry after a short delay (often succeeds on second attempt)
+pac connector update \
+  --connector-id <connector-id> \
+  --api-definition-file apiDefinition.swagger.json \
+  --api-properties-file apiProperties.json \
+  --script-file script.csx
+```
+
+If repeated retries fail, capture and report the correlation ID from the CLI output.
+
+### 36. Assuming `pac connector download` Files Must Match Byte-for-Byte
+
+**Mistake:** Treating every difference between local and downloaded connector files as a functional regression.
+
+**Symptoms:** False positives in verification, unnecessary rollback/change churn after successful deployment.
+
+**Fix:** Use semantic comparison and focus on functional sections. Some differences are platform-managed and may be expected:
+- `policyTemplateInstances` may be added automatically
+- `publisher` / `stackOwner` in downloaded `apiProperties.json` may differ or be blank
+
+Verify functional parity for:
+- Paths, parameters, and response schemas
+- `x-ms-dynamic-values` mappings
+- `connectionParameters` and custom script wiring
+
+### 37. Breaking Power Apps WADL Conversion with Ambiguous Definition Properties
+
+**Mistake:** Leaving `definitions.*.properties.*` entries without explicit schema metadata (for example, only `description`, `title`, and `x-ms-summary`) or introducing malformed JSON while bulk-editing swagger.
+
+**Symptoms:** Power Automate/Power Apps update may partially succeed, but Power Apps conversion fails with messages like:
+- `An error occured while converting OpenAPI file to WADL file`
+- `Required property '<property_name>' cannot have an ambiguous schema`
+- `Make sure the 'type' property is specified at JSON path definitions.<Schema>.properties.<Property>`
+
+**Fix:**
+1. Ensure every `definitions.*.properties.*` entry has a schema discriminator (`type`, `$ref`, `enum`, `anyOf`, `oneOf`, `allOf`).
+2. Remove accidental empty objects (`{}`) in parameters/responses/schemas.
+3. Parse-check JSON before deployment to catch trailing/extra data.
+4. If source is OpenAPI 3.x, re-map nullable fields carefully so converted Swagger 2.0 properties retain explicit typing.
+
+```bash
+# JSON parse check
+python -c "import json; json.load(open('apiDefinition.swagger.json', encoding='utf-8'))"
+
+# Ambiguous definition-property check
+python -c "import json; s=json.load(open('apiDefinition.swagger.json',encoding='utf-8')); bad=[]; [bad.append(f'{dn}.{pn}') for dn,dv in s.get('definitions',{}).items() for pn,pv in (dv.get('properties') or {}).items() if isinstance(pv,dict) and not any(k in pv for k in ('type','$ref','enum','anyOf','oneOf','allOf'))]; print('ambiguous_count',len(bad)); [print(x) for x in bad[:200]]"
+```
+
+### 38. Leaving Array `items` Schemas Untyped (`"items": {}`)
+
+**Mistake:** Keeping array properties with empty item schemas after OpenAPI conversion or manual edits.
+
+**Symptoms:** Power Apps WADL conversion fails with messages such as:
+- `Required property '<property_name>' cannot have an ambiguous schema`
+- Errors pointing to paths like `definitions.<Schema>.properties.<ArrayProperty>`
+
+**Fix:** Ensure every array has typed or referenced `items` schema.
+
+```json
+// ✗ Ambiguous array item schema
+"error_sample_list": {
+  "type": "array",
+  "items": {}
+}
+
+// ✓ Explicit item schema
+"error_sample_list": {
+  "type": "array",
+  "items": { "type": "string" }
+}
+```
+
+### 39. Marking `readOnly` Properties as `required`
+
+**Mistake:** Including `readOnly: true` properties in a definition's `required` array.
+
+**Symptoms:** Semantic validation errors like:
+- `Read only properties cannot be marked as required by a schema`
+
+**Fix:** Remove read-only properties from `required` arrays.
+
+```bash
+python -c "import json; s=json.load(open('apiDefinition.swagger.json',encoding='utf-8')); bad=[]; [bad.append((dn,p)) for dn,dv in s.get('definitions',{}).items() for p in (dv.get('required') or []) if isinstance((dv.get('properties') or {}).get(p),dict) and (dv.get('properties') or {}).get(p,{}).get('readOnly') is True]; print('readOnly_required_conflicts',len(bad)); [print(f'{dn}.{p}') for dn,p in bad]"
+```
+
+### 40. Updating Connector Without `--script-file`
+
+**Mistake:** Running `pac connector update` with only swagger/properties when connector behavior depends on `script.csx`.
+
+**Symptoms:** Update succeeds, but runtime behavior appears unchanged because script changes were not included in that deployment command.
+
+**Fix:** Include script on every update when custom code is used.
+
+```bash
+pac connector update \
+  --connector-id <connector-id> \
+  --api-definition-file apiDefinition.swagger.json \
+  --api-properties-file apiProperties.json \
+  --script-file script.csx
+```
+
+### 41. Assuming `connectionParameters` Always Reach Custom Code Without Explicit Policy Mapping
+
+**Mistake:** Relying on implicit runtime behavior for connection parameter propagation into request headers consumed by `script.csx`.
+
+**Symptoms:** Intermittent or environment-dependent missing values in custom code (for example, missing `app_name`/`email` headers).
+
+**Fix:** Add explicit `setheader` policy mappings from `@connectionParameters('...')` in `apiProperties.json`.
+
+```json
+"policyTemplateInstances": [
+  {
+    "templateId": "setheader",
+    "title": "app_name",
+    "parameters": {
+      "x-ms-apimTemplateParameter.name": "app_name",
+      "x-ms-apimTemplateParameter.value": "@connectionParameters('app_name')",
+      "x-ms-apimTemplateParameter.existsAction": "override",
+      "x-ms-apimTemplate-policySection": "Request"
+    }
+  }
+]
+```
+
 ---
 
 ## Validation Tips
