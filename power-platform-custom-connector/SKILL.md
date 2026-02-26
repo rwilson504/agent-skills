@@ -1,13 +1,25 @@
 ---
 name: power-platform-custom-connector
-description: Create Power Platform custom connectors for Independent Publisher or Verified Publisher certification. Use when building apiDefinition.swagger.json, apiProperties.json, writing OpenAPI 2.0 definitions with x-ms-* extensions, configuring connection parameters, adding policy templates, writing custom code (script.csx), creating webhook triggers, or preparing connectors for Microsoft certification submission to the PowerPlatformConnectors GitHub repo.
+description: Build Power Platform custom connectors (Independent Publisher and Verified Publisher) for Microsoft certification. Use when user says "create a custom connector", "build a Power Automate connector", "write apiDefinition.swagger.json", "configure apiProperties.json", "add x-ms-* extensions", "set up OAuth for a connector", "write script.csx custom code",  "create a webhook trigger connector", "prepare connector for certification PR", "add dynamic dropdowns", "configure policy templates", or "submit connector to PowerPlatformConnectors repo". Capabilities; Swagger 2.0 OpenAPI definitions, 5 auth types, 13 policy templates, C# custom code,webhook triggers, dynamic values, Copilot Studio AI extensions, certification checklists, pac connector CLI. Do NOT use for generic REST API design, Azure API Management policies, or Logic Apps built-in connectors.
+license: MIT
+metadata:
+  author: rwilson504
+  version: 1.0.0
+  category: development
+  tags:
+    - power-platform
+    - custom-connector
+    - swagger
+    - openapi
+    - power-automate
+    - power-apps
 ---
 
 # Power Platform Custom Connector Creation
 
 Build production-ready Power Platform custom connectors and submit them to the [microsoft/PowerPlatformConnectors](https://github.com/microsoft/PowerPlatformConnectors) GitHub repo. This skill covers **Independent Publisher** and **Verified Publisher** connector paths.
 
-**References:** [OPENAPI_EXTENSIONS.md](OPENAPI_EXTENSIONS.md) | [AUTH_PATTERNS.md](AUTH_PATTERNS.md) | [POLICY_TEMPLATES.md](POLICY_TEMPLATES.md) | [CUSTOM_CODE.md](CUSTOM_CODE.md) | [WEBHOOK_TRIGGERS.md](WEBHOOK_TRIGGERS.md) | [EXAMPLES.md](EXAMPLES.md) | [COMMON_MISTAKES.md](COMMON_MISTAKES.md)
+**References:** [OPENAPI_EXTENSIONS.md](references/OPENAPI_EXTENSIONS.md) | [AUTH_PATTERNS.md](references/AUTH_PATTERNS.md) | [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) | [CUSTOM_CODE.md](references/CUSTOM_CODE.md) | [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) | [EXAMPLES.md](references/EXAMPLES.md) | [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md)
 
 ---
 
@@ -227,7 +239,7 @@ Use this quick mapping when rewriting parameter helper text for designer UX.
 - **Reserved names** — A parameter cannot be named `connectionId` (reserved by the platform)
 - **Swagger 2.0 parameter typing** — Every non-body parameter (`in: query`, `header`, `path`, `formData`) must include a `type` field. Missing `type` frequently causes APIM import failures such as `JSON is valid against no schemas from 'oneOf'`
 - **GET operations** — Cannot have body or form data parameters
-- **`collectionFormat: "multi"` is NOT supported** — The Custom Connector wizard rejects array parameters with `"collectionFormat": "multi"`. Workaround: change the parameter type from `array` to `string`, accept comma-separated values, and use custom code (`script.csx`) to split them into repeated query parameters. See [CUSTOM_CODE.md](CUSTOM_CODE.md) Pattern 5 and [COMMON_MISTAKES.md](COMMON_MISTAKES.md) entry #33
+- **`collectionFormat: "multi"` is NOT supported** — The Custom Connector wizard rejects array parameters with `"collectionFormat": "multi"`. Workaround: change the parameter type from `array` to `string`, accept comma-separated values, and use custom code (`script.csx`) to split them into repeated query parameters. See [CUSTOM_CODE.md](references/CUSTOM_CODE.md) Pattern 5 and [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md) entry #33
 - **Remove empty properties** from operations and parameters unless they are explicitly required
 
 **Recommended preflight lint before `pac connector create` / `pac connector update`:**
@@ -332,7 +344,7 @@ Note: The `project` property uses `$ref`, so it does **not** need its own `title
 
 **Extended format types:** `date-no-tz`, `email`, `html`, `uri`, `uuid`
 
-See [OPENAPI_EXTENSIONS.md](OPENAPI_EXTENSIONS.md) for detailed examples of each extension.
+See [OPENAPI_EXTENSIONS.md](references/OPENAPI_EXTENSIONS.md) for detailed examples of each extension.
 
 ### Dynamic Dropdown Pattern (Metadata Endpoints)
 
@@ -408,7 +420,7 @@ Configure auth in `apiProperties.json` under `connectionParameters` (or `connect
 
 **Critical:** Independent Publisher `iconBrandColor` **must** be `"#da3b01"`.
 
-See [AUTH_PATTERNS.md](AUTH_PATTERNS.md) for OAuth 2.0, AAD, and Basic Auth patterns.
+See [AUTH_PATTERNS.md](references/AUTH_PATTERNS.md) for OAuth 2.0, AAD, and Basic Auth patterns.
 
 ---
 
@@ -441,7 +453,7 @@ Policy templates transform requests/responses without custom code. Defined in `a
 ]
 ```
 
-See [POLICY_TEMPLATES.md](POLICY_TEMPLATES.md) for all templates with examples.
+See [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) for all templates with examples.
 
 ---
 
@@ -507,7 +519,7 @@ Example `apiProperties.json` policy mapping:
 ]
 ```
 
-See [CUSTOM_CODE.md](CUSTOM_CODE.md) for full reference with examples.
+See [CUSTOM_CODE.md](references/CUSTOM_CODE.md) for full reference with examples.
 
 ---
 
@@ -548,7 +560,7 @@ Mark an operation as a webhook trigger with `x-ms-trigger` and define the notifi
 
 **Requirements:** Must also define a DELETE operation so the platform can unregister webhooks. The API must return a `Location` header in the 201 response pointing to the webhook resource.
 
-See [WEBHOOK_TRIGGERS.md](WEBHOOK_TRIGGERS.md) for complete patterns.
+See [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) for complete patterns.
 
 ---
 
@@ -927,7 +939,7 @@ After `pac connector create` or `pac connector update`:
 
 **Known limitation:** When using `paconn`, the `stackOwner` property in `apiProperties.json` prevents `paconn update` from working. Workaround: maintain two versions of your apiProperties — one with `stackOwner` for certification submission and one without for local environment updates via `paconn`. The `pac connector` CLI does not have this limitation.
 
-See [COMMON_MISTAKES.md](COMMON_MISTAKES.md) for a full error catalog with fixes.
+See [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md) for a full error catalog with fixes.
 
 ---
 
@@ -964,12 +976,33 @@ Use this section as a lightweight changelog for practical field learnings that s
 
 ---
 
+## Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| `JSON is valid against no schemas from 'oneOf'` | Non-body parameter missing `type` | Add `type: "string"` (or appropriate type) to every query/header/path/formData parameter |
+| `DefaultResponseHasSchema` | Schema on `default` response | Move schema to the `200`/`201` response; remove schema from `default` |
+| `CustomScriptProvisioningFailed` / 502 | Transient deployment error | Retry the same `pac connector update` command after a short delay |
+| Dynamic content missing in Power Automate | No response schema on success response | Add a complete schema to the `200` response |
+| `PathParameterMustBeRequired` | Path parameter missing `required: true` | Add `"required": true` and `"x-ms-url-encoding": "single"` |
+| `ConnectionIdParameterNotAllowed` | Parameter named `connectionId` | Rename the parameter (e.g., `connId`) |
+| `The 'collectionFormat' value 'Multi' is not supported` | Array parameter with `collectionFormat: "multi"` | Change to `type: "string"`, accept comma-separated values, split in `script.csx` |
+| `An error occured while converting OpenAPI file to WADL file` | Ambiguous definition properties (missing `type`/`$ref`) | Ensure every `definitions.*.properties.*` has an explicit schema discriminator |
+| Properties show raw technical names in designer | Missing `x-ms-summary` or `title` | Add `x-ms-summary` to parameters; add `title` and `description` to definition properties |
+| Double-encoded path parameters | Missing `x-ms-url-encoding` | Add `"x-ms-url-encoding": "single"` to all path parameters |
+| OAuth connector certification rejected | Using `redirectMode: "Global"` | Change to `"redirectMode": "GlobalPerConnector"` |
+| Connector title rejected | Title > 30 chars or contains "API"/"Connector" | Shorten title and remove restricted words |
+
+For the full error catalog with detailed fixes and code examples, see [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md).
+
+---
+
 ## Related Files
 
-- [OPENAPI_EXTENSIONS.md](OPENAPI_EXTENSIONS.md) — Detailed reference for all `x-ms-*` extensions with examples
-- [AUTH_PATTERNS.md](AUTH_PATTERNS.md) — API Key, OAuth 2.0 (AAD/Generic), Basic Auth, and Multi-Auth patterns
-- [POLICY_TEMPLATES.md](POLICY_TEMPLATES.md) — All policy template IDs with configuration examples
-- [CUSTOM_CODE.md](CUSTOM_CODE.md) — C# `script.csx` patterns, ScriptBase class, supported namespaces
-- [WEBHOOK_TRIGGERS.md](WEBHOOK_TRIGGERS.md) — Webhook trigger registration, notification, and deletion patterns
-- [EXAMPLES.md](EXAMPLES.md) — Complete working connector examples for common scenarios
-- [COMMON_MISTAKES.md](COMMON_MISTAKES.md) — Error catalog with fixes and validation tips
+- [OPENAPI_EXTENSIONS.md](references/OPENAPI_EXTENSIONS.md) — Detailed reference for all `x-ms-*` extensions with examples
+- [AUTH_PATTERNS.md](references/AUTH_PATTERNS.md) — API Key, OAuth 2.0 (AAD/Generic), Basic Auth, and Multi-Auth patterns
+- [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) — All policy template IDs with configuration examples
+- [CUSTOM_CODE.md](references/CUSTOM_CODE.md) — C# `script.csx` patterns, ScriptBase class, supported namespaces
+- [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) — Webhook trigger registration, notification, and deletion patterns
+- [EXAMPLES.md](references/EXAMPLES.md) — Complete working connector examples for common scenarios
+- [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md) — Error catalog with fixes and validation tips

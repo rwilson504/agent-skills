@@ -1,6 +1,6 @@
 # Examples
 
-Complete working examples for n8n community node development. See [SKILL.md](SKILL.md) for main skill.
+Complete working examples for n8n community node development. See [SKILL.md](../SKILL.md) for main skill.
 
 ---
 

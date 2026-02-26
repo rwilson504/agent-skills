@@ -1,6 +1,6 @@
 # Credential Patterns
 
-Reference for creating n8n credential types. See [SKILL.md](SKILL.md) for main skill.
+Reference for creating n8n credential types. See [SKILL.md](../SKILL.md) for main skill.
 
 ---
 

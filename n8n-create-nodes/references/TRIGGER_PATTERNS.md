@@ -1,6 +1,6 @@
 # Trigger Node Patterns
 
-Reference for creating n8n trigger nodes. See [SKILL.md](SKILL.md) for main skill.
+Reference for creating n8n trigger nodes. See [SKILL.md](../SKILL.md) for main skill.
 
 n8n supports three trigger mechanisms: **webhook**, **poll**, and **event/stream**.
 

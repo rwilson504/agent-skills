@@ -81,20 +81,22 @@ Or download individual skill packages from the [latest release](https://github.c
 agent-skills/
 ├── n8n-create-nodes/                    # n8n node development skill
 │   ├── SKILL.md                         # Main skill instructions
-│   ├── CREDENTIAL_PATTERNS.md           # Credential implementation patterns
-│   ├── TRIGGER_PATTERNS.md              # Trigger node patterns
-│   ├── EXAMPLES.md                      # Full examples
-│   ├── COMMON_MISTAKES.md               # Common mistakes and fixes
+│   ├── references/                      # Detailed reference docs (loaded on demand)
+│   │   ├── CREDENTIAL_PATTERNS.md       # Credential implementation patterns
+│   │   ├── TRIGGER_PATTERNS.md          # Trigger node patterns
+│   │   ├── EXAMPLES.md                  # Full examples
+│   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
 ├── power-platform-custom-connector/     # Power Platform connector skill
 │   ├── SKILL.md                         # Main skill instructions
-│   ├── AUTH_PATTERNS.md                 # Authentication patterns
-│   ├── OPENAPI_EXTENSIONS.md            # x-ms-* OpenAPI extensions
-│   ├── POLICY_TEMPLATES.md              # Policy template reference
-│   ├── CUSTOM_CODE.md                   # Custom code (script.csx)
-│   ├── WEBHOOK_TRIGGERS.md              # Webhook trigger patterns
-│   ├── EXAMPLES.md                      # Full examples
-│   ├── COMMON_MISTAKES.md               # Common mistakes and fixes
+│   ├── references/                      # Detailed reference docs (loaded on demand)
+│   │   ├── AUTH_PATTERNS.md             # Authentication patterns
+│   │   ├── OPENAPI_EXTENSIONS.md        # x-ms-* OpenAPI extensions
+│   │   ├── POLICY_TEMPLATES.md          # Policy template reference
+│   │   ├── CUSTOM_CODE.md              # Custom code (script.csx)
+│   │   ├── WEBHOOK_TRIGGERS.md          # Webhook trigger patterns
+│   │   ├── EXAMPLES.md                  # Full examples
+│   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
 ├── build.sh                             # Build script (bash)
 ├── build.ps1                            # Build script (PowerShell)
@@ -107,13 +109,13 @@ agent-skills/
 
 1. Navigate to the `power-platform-custom-connector/` directory
 2. Start with `SKILL.md` for the main instructions
-3. Reference `AUTH_PATTERNS.md`, `OPENAPI_EXTENSIONS.md`, and other files as needed
+3. Reference files in `references/` (e.g., `AUTH_PATTERNS.md`, `OPENAPI_EXTENSIONS.md`) as needed
 
 ### Creating an n8n Community Node
 
 1. Navigate to the `n8n-create-nodes/` directory
 2. Start with `SKILL.md` for the main instructions
-3. Reference `CREDENTIAL_PATTERNS.md`, `TRIGGER_PATTERNS.md`, and other files as needed
+3. Reference files in `references/` (e.g., `CREDENTIAL_PATTERNS.md`, `TRIGGER_PATTERNS.md`) as needed
 
 ## 📦 Distribution Packages
 

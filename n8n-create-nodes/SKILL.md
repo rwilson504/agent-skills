@@ -1,13 +1,19 @@
 ---
 name: n8n-create-nodes
-description: Create n8n community nodes, build n8n integrations, scaffold n8n node packages. Use when creating n8n nodes, building declarative or programmatic nodes, defining INodeType classes, writing credential types, creating trigger nodes (webhook/poll), configuring node properties and UI elements, setting up n8n-nodes-starter projects, publishing community nodes to npm, or working with the n8n-workflow SDK interfaces.
+description: Build production-ready n8n community nodes as npm packages, covering declarative and programmatic node styles. Use when user says "create an n8n node", "build an n8n integration", "scaffold n8n node package", "create n8n credential type", "create webhook trigger node", "create poll trigger", "publish n8n community node", or works with INodeType, n8n-workflow-SDK, n8n-nodes-starter, declarative routing, programmatic execute, or versioned nodes. Do NOT use for n8n workflow building or general workflow automation this skill is specifically for node package development.
+license: MIT
+metadata:
+  author: rwilson504
+  version: 1.0.0
+  category: development
+  tags: [n8n, community-nodes, node-development, npm-package, workflow-sdk]
 ---
 
 # n8n Community Node Creation
 
 Build production-ready n8n community nodes as npm packages. This skill covers both **declarative** (REST API wrapping) and **programmatic** (custom logic) node styles.
 
-**References:** [CREDENTIAL_PATTERNS.md](CREDENTIAL_PATTERNS.md) | [TRIGGER_PATTERNS.md](TRIGGER_PATTERNS.md) | [EXAMPLES.md](EXAMPLES.md) | [COMMON_MISTAKES.md](COMMON_MISTAKES.md)
+**References:** [CREDENTIAL_PATTERNS.md](references/CREDENTIAL_PATTERNS.md) | [TRIGGER_PATTERNS.md](references/TRIGGER_PATTERNS.md) | [EXAMPLES.md](references/EXAMPLES.md) | [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md)
 
 ---
 
@@ -571,9 +577,33 @@ Ensure your `package.json` has:
 
 ---
 
+## Troubleshooting
+
+Quick reference for common issues. For the full catalog of 16+ errors with fixes, see [references/COMMON_MISTAKES.md](references/COMMON_MISTAKES.md).
+
+### Node not appearing in editor
+1. Check `package.json` → `n8n.nodes` paths point to `dist/` (not source)
+2. Rebuild: `npm run build`
+3. Re-link if using `npm link` and restart n8n
+
+### "Cannot find credential"
+- Verify the `name` in your credential class matches the name in the node's `description.credentials` array (case-sensitive)
+- Ensure credential file is listed in `package.json` → `n8n.credentials`
+
+### displayOptions not working
+- Resource/operation `value` strings must match exactly (case-sensitive) between the selector and `displayOptions.show`
+
+### Empty response data
+- For declarative nodes: verify `postReceive` → `rootProperty` extracts the correct JSON path from the API response
+
+### Item linking broken in output
+- Add `constructExecutionMetaData` with `{ itemData: { item: i } }` wrapping every `returnJsonArray` call
+
+---
+
 ## Related Files
 
-- [CREDENTIAL_PATTERNS.md](CREDENTIAL_PATTERNS.md) — API key, OAuth2, and custom auth patterns
-- [TRIGGER_PATTERNS.md](TRIGGER_PATTERNS.md) — Webhook, poll, and event trigger implementations
-- [EXAMPLES.md](EXAMPLES.md) — Complete working node examples and helper patterns
-- [COMMON_MISTAKES.md](COMMON_MISTAKES.md) — Error catalog with fixes
+- [references/CREDENTIAL_PATTERNS.md](references/CREDENTIAL_PATTERNS.md) — API key, OAuth2, and custom auth patterns
+- [references/TRIGGER_PATTERNS.md](references/TRIGGER_PATTERNS.md) — Webhook, poll, and event trigger implementations
+- [references/EXAMPLES.md](references/EXAMPLES.md) — Complete working node examples and helper patterns
+- [references/COMMON_MISTAKES.md](references/COMMON_MISTAKES.md) — Error catalog with fixes

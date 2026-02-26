@@ -1,6 +1,6 @@
 # Common Mistakes
 
-Error catalog for n8n node development. See [SKILL.md](SKILL.md) for main skill.
+Error catalog for n8n node development. See [SKILL.md](../SKILL.md) for main skill.
 
 ---
 
