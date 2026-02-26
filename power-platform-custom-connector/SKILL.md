@@ -740,6 +740,28 @@ For connectors to leverage Power Platform's **built-in paging**, the API must re
 
 When the last page is reached, omit `nextLink` entirely — Power Platform stops paging automatically.
 
+**Important runtime caveat (custom code):**
+- Do **not** rely on `script.csx` to reshape pagination payloads for built-in auto paging.
+- In practice, follow-up requests triggered internally by platform auto-pagination may bypass custom response transformation logic.
+- If page 1 is transformed to include `value`/`nextLink` but the upstream API returns a different shape on subsequent pages (for example `data`/`next`), built-in pagination can still fail.
+
+**Recommended approach:**
+- Prefer native upstream pagination contracts for built-in paging (`value` + `nextLink` on every page).
+- If upstream payloads are non-standard and cannot be changed, implement manual pagination in the flow (Do Until) or create a dedicated custom action that fetches/aggregates pages explicitly.
+
+**Pagination decision tree (use this before implementing):**
+1. **Can the upstream API return `value` + `nextLink` on every page?**
+  - **Yes** → Use built-in connector pagination.
+  - **No** → Continue to step 2.
+2. **Can `updatenextlink` policy safely map the API's paging model?**
+  - **Yes** → Use `updatenextlink` + built-in pagination.
+  - **No** → Continue to step 3.
+3. **Need all records in a single action output?**
+  - **Yes** → Build a dedicated custom "fetch all pages" action.
+  - **No** → Use manual pagination in Flow (`Do Until`) and process page-by-page.
+
+**Rule of thumb:** If pagination correctness depends on response reshaping in `script.csx`, do not use built-in auto-pagination as the primary design.
+
 **If the API uses non-standard pagination** (e.g., `page`/`limit` query parameters, cursor-based, or offset-based), you have two options:
 1. Use the `updatenextlink` **policy template** to rewrite the pagination URL into the `nextLink` format Power Platform expects
 2. Build pagination logic in a **Power Automate flow** using a Do Until loop that increments the page parameter until no more results are returned
@@ -933,6 +955,12 @@ Use this section as a lightweight changelog for practical field learnings that s
 - **Boolean correctness:** Converted boolean-like query flags (`has_hrp`, `in_gho`, `origin_*`, `asylum_*`, `is_hxl`) from `string` to `boolean` to align schema with runtime semantics.
 - **Swagger 2.0 nullable safety:** Avoid `type` arrays (for example `["integer", "null"]`) because they can pass some validators but fail connector import/parsing; use `x-nullable: true` with scalar `type` instead.
 - **Required vs nullable:** If upstream API returns `null` or omits fields, remove those fields from response `required` arrays rather than coercing values (for example, avoid null→0 data mutation unless explicitly desired).
+
+### 2026-02-26: HDX Auto-Pagination Session
+
+- **Auto-pagination + custom code caveat:** Built-in platform auto-pagination may execute follow-up page calls outside custom `script.csx` response-shaping assumptions.
+- **Design implication:** Do not depend on custom code to retrofit page 2+ into `value`/`nextLink` for built-in pagination.
+- **Preferred fallback:** Use manual pagination (Do Until) or a dedicated "fetch all pages" action when the upstream API cannot natively emit Power Platform paging shape on every page.
 
 ---
 
