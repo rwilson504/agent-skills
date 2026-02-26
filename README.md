@@ -66,7 +66,54 @@ Depending on which skill you're working with:
 
 ### Installation
 
-Clone this repository to access the skills:
+Choose the method that matches your AI coding agent:
+
+#### Claude Code
+
+Install skills directly from GitHub using the Claude Code CLI:
+
+```bash
+# Install a specific skill
+claude install-github-skill rwilson504/agent-skills/power-platform-custom-connector
+claude install-github-skill rwilson504/agent-skills/n8n-create-nodes
+```
+
+After installation, the skill's instructions are automatically available in your Claude Code sessions.
+
+#### VS Code / GitHub Copilot Chat
+
+1. Download the skill zip from the [latest release](https://github.com/rwilson504/agent-skills/releases/latest)
+2. Extract the skill folder into your project
+3. Add the SKILL.md as a custom instruction file in `.github/copilot-instructions.md` or reference it via a VS Code prompt file (`.github/prompts/*.prompt.md`)
+
+Alternatively, clone the repo and point a prompt file at the SKILL.md:
+
+```yaml
+# .github/prompts/power-platform-connector.prompt.md
+---
+description: Power Platform custom connector creation
+---
+@skill path/to/power-platform-custom-connector/SKILL.md
+```
+
+#### Cursor
+
+1. Download or clone the skill
+2. Copy the SKILL.md content into `.cursor/rules/` as a rule file:
+
+```bash
+# Example
+cp power-platform-custom-connector/SKILL.md .cursor/rules/power-platform-connector.md
+```
+
+#### Windsurf
+
+1. Download or clone the skill
+2. Append or include the SKILL.md content in your `.windsurfrules` file
+
+#### Manual (Any Agent)
+
+Clone the repository and reference the skill files directly:
 
 ```bash
 git clone https://github.com/rwilson504/agent-skills.git
