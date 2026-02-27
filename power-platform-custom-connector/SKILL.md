@@ -19,7 +19,22 @@ metadata:
 
 Build production-ready Power Platform custom connectors and submit them to the [microsoft/PowerPlatformConnectors](https://github.com/microsoft/PowerPlatformConnectors) GitHub repo. This skill covers **Independent Publisher** and **Verified Publisher** connector paths.
 
-**References:** [OPENAPI_EXTENSIONS.md](references/OPENAPI_EXTENSIONS.md) | [AUTH_PATTERNS.md](references/AUTH_PATTERNS.md) | [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) | [CUSTOM_CODE.md](references/CUSTOM_CODE.md) | [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) | [EXAMPLES.md](references/EXAMPLES.md) | [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md)
+**References:** [OPENAPI_EXTENSIONS.md](references/OPENAPI_EXTENSIONS.md) | [AUTH_PATTERNS.md](references/AUTH_PATTERNS.md) | [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) | [CUSTOM_CODE.md](references/CUSTOM_CODE.md) | [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) | [CERTIFICATION.md](references/CERTIFICATION.md) | [EXAMPLES.md](references/EXAMPLES.md) | [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md)
+
+---
+
+## First Step: Identify Publisher Type
+
+> **IMPORTANT — Ask the user before proceeding:**
+>
+> Before generating any connector files or certification guidance, ask the user:
+>
+> *"Are you building an **Independent Publisher** connector or a **Verified Publisher** connector?"*
+>
+> - **Independent Publisher** — You are a community member (MVP, developer, enthusiast) wrapping a third-party API you do **not** own.
+> - **Verified Publisher** — You are the service/API owner and want to publish your own connector.
+>
+> The answer determines: directory structure, brand color, icon requirements, OAuth support, certification workflow, submission target, and connector title format. Tailor **all** subsequent guidance to the selected publisher type.
 
 ---
 
@@ -34,6 +49,13 @@ Build production-ready Power Platform custom connectors and submit them to the [
 | **Connector tier** | Premium (automatic for external APIs) | Premium (automatic for external APIs) |
 | **PR requirements** | Screenshots of 3 unique operations working in a Flow | Thorough API testing documentation |
 | **OAuth redirect** | Per-connector redirect URI (mandatory since Feb 2024) | Per-connector redirect URI (mandatory since Feb 2024) |
+| **OAuth support** | **Not currently supported** for certification | Fully supported (AAD, Generic OAuth) |
+| **Connector title** | Service name only (≤30 chars) | Service name only (≤30 chars) |
+| **Icon** | Generic icon assigned automatically | Custom icon required (100×100 to 230×230 px, PNG, non-white/non-default background) |
+| **Submission target** | GitHub PR to `microsoft/PowerPlatformConnectors` | Microsoft Partner Center |
+| **Identity verification** | Verified credentials via OneVet + Microsoft Authenticator | Partner Center account |
+| **Deployment timeline** | ~15 business days after approval (Friday deployments) | ~15 business days after approval (Friday deployments) |
+| **Intro artifact** | `intro.md` included in PR | `intro.md` packaged in submission zip |
 
 **Decision rule:** If you own the API/service, go **Verified Publisher**. If you're wrapping a third-party API you don't own, go **Independent Publisher**.
 
@@ -137,7 +159,7 @@ After conversion, manually verify the output — automated tools may not handle 
 ```
 
 **Key rules:**
-- `title` — **Maximum 30 characters**. Cannot include the words "API", "Connector", "Copilot Studio", or any Power Platform product names. Must end with an alphanumeric character (no trailing punctuation, spaces, or special chars). Must be unique and distinguishable from existing connector titles. For Independent Publishers, use the pattern: `Connector Name (Independent Publisher)`
+- `title` — **Maximum 30 characters**. Cannot include the words "API", "Connector", "Copilot Studio", or any Power Platform product names. Must end with an alphanumeric character (no trailing punctuation, spaces, or special chars). Must be unique and distinguishable from existing connector titles. Note: the `(Independent Publisher)` suffix goes on the **PR title**, not the connector title in the OpenAPI definition
 - `description` — Must be **30-500 characters** for certification quality and must stay within the platform import hard limit of **1000 characters**. Use plain text only (no HTML tags). Cannot contain "API", "Copilot Studio", or Power Platform product names. Must be free of grammatical and spelling errors. Should concisely describe the main purpose and value of the connector
 - `contact` — Include `name`, `url`, and `email` with a valid email address
 - `x-ms-connector-metadata` — **Required** array with Website, Privacy policy, and Categories. The `Categories` value must be a semicolon-delimited string from these allowed values: `AI`, `Business Management`, `Business Intelligence`, `Collaboration`, `Commerce`, `Communication`, `Content and Files`, `Data`, `Finance`, `Human Resources`, `Internet of Things`, `IT Operations`, `Lifestyle and Entertainment`, `Marketing`, `Productivity`, `Sales and CRM`, `Security`, `Social Media`, `Website`
@@ -565,6 +587,33 @@ See [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) for complete patterns.
 ---
 
 ## Certification & Submission
+
+See [CERTIFICATION.md](references/CERTIFICATION.md) for full step-by-step certification workflows, packaging instructions, and submission details for both publisher types.
+
+### Connector Requirements (Both Publisher Types)
+
+**Connector Title:**
+- ≤30 characters, no restricted words (`API`, `Connector`, `Copilot Studio`)
+- The `(Independent Publisher)` suffix goes on the **PR title**, not the connector title in the OpenAPI definition
+
+**Connector Description:** 30–500 characters, ≤1000 total, no HTML tags.
+
+**Icon (Verified Publisher only):** Custom icon required — 100×100 to 230×230 px, PNG, non-white/non-default background.
+
+**OAuth:** Currently **unsupported** for Independent Publisher certification.
+
+### Certification Process Summary
+
+| Step | Independent Publisher | Verified Publisher |
+|------|----------------------|-------------------|
+| **1** | Verify connector doesn't already exist | Prepare connector artifacts + custom icon |
+| **2** | Submit proposal PR (`dev` branch) | Run Solution Checker |
+| **3** | Build connector after approval | Create `intro.md` artifact |
+| **4** | Submit artifacts to same PR | Package solution zip + intro.md |
+| **5** | Complete OneVet identity verification | Validate with ConnectorPackageValidator.ps1 |
+| **6** | Certification review → deploy (~15 biz days, Fridays) | Upload to blob (SAS URL) → submit via Partner Center (~15 biz days, Fridays) |
+
+**Office Hours:** Tuesdays 3:30–4:30 PM UTC with the Connector Certification Team.
 
 ### PR Checklist
 
@@ -1004,5 +1053,6 @@ For the full error catalog with detailed fixes and code examples, see [COMMON_MI
 - [POLICY_TEMPLATES.md](references/POLICY_TEMPLATES.md) — All policy template IDs with configuration examples
 - [CUSTOM_CODE.md](references/CUSTOM_CODE.md) — C# `script.csx` patterns, ScriptBase class, supported namespaces
 - [WEBHOOK_TRIGGERS.md](references/WEBHOOK_TRIGGERS.md) — Webhook trigger registration, notification, and deletion patterns
+- [CERTIFICATION.md](references/CERTIFICATION.md) — Full certification workflows for Independent and Verified Publishers, packaging, and submission
 - [EXAMPLES.md](references/EXAMPLES.md) — Complete working connector examples for common scenarios
 - [COMMON_MISTAKES.md](references/COMMON_MISTAKES.md) — Error catalog with fixes and validation tips

@@ -142,6 +142,7 @@ agent-skills/
 │   │   ├── POLICY_TEMPLATES.md          # Policy template reference
 │   │   ├── CUSTOM_CODE.md              # Custom code (script.csx)
 │   │   ├── WEBHOOK_TRIGGERS.md          # Webhook trigger patterns
+│   │   ├── CERTIFICATION.md            # Certification workflows & submission
 │   │   ├── EXAMPLES.md                  # Full examples
 │   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
