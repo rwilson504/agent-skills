@@ -27,7 +27,30 @@ if (-not $Version) {
 $DistDir = "dist"
 $RepoName = "agent-skills"
 
-Write-Host "Building $RepoName distribution packages (v$Version)..." -ForegroundColor Cyan
+# Extract a skill's own version from the top-level `version:` field of its
+# SKILL.md frontmatter. This is intentionally independent from $Version (the
+# repo-wide tag version) so per-skill zip filenames match each skill's own
+# semver and the per-skill git tags created by release-on-merge.yml.
+function Get-SkillVersion {
+    param([string]$SkillDir)
+    $skillFile = Join-Path $SkillDir "SKILL.md"
+    $inFrontmatter = $false
+    $dashCount = 0
+    foreach ($line in Get-Content $skillFile) {
+        if ($line -match '^---\s*$') {
+            $dashCount++
+            if ($dashCount -eq 1) { $inFrontmatter = $true; continue }
+            if ($dashCount -eq 2) { break }
+        }
+        if ($inFrontmatter -and $line -match '^version:\s*(.+?)\s*$') {
+            return $Matches[1]
+        }
+    }
+    Write-Error "Could not extract version from $skillFile"
+    exit 1
+}
+
+Write-Host "Building $RepoName distribution packages (bundle v$Version)..." -ForegroundColor Cyan
 Write-Host ""
 
 # Create dist directory
@@ -55,10 +78,11 @@ foreach ($skill in $Skills) {
 }
 Write-Host ""
 
-# Build individual skill zips
+# Build individual skill zips (each uses its own SKILL.md version)
 Write-Host "Building individual skill packages..."
 foreach ($skill in $Skills) {
-    $zipName = "$skill-v$Version.zip"
+    $skillVersion = Get-SkillVersion $skill
+    $zipName = "$skill-v$skillVersion.zip"
     $zipPath = Join-Path $DistDir $zipName
     
     # Get all files except evaluations folder

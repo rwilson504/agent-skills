@@ -19,7 +19,22 @@ fi
 DIST_DIR="dist"
 REPO_NAME="agent-skills"
 
-echo "Building ${REPO_NAME} distribution packages (v${VERSION})..."
+# Extract a skill's own version from the top-level `version:` field of its
+# SKILL.md frontmatter. This is intentionally independent from $VERSION (the
+# repo-wide tag version) so per-skill zip filenames match each skill's own
+# semver and the per-skill git tags created by release-on-merge.yml.
+get_skill_version() {
+    local skill="$1"
+    local v
+    v=$(awk '/^---$/{i++; next} i==1 && /^version:[[:space:]]*/ {sub(/^version:[[:space:]]*/, ""); print; exit}' "$skill/SKILL.md")
+    if [ -z "$v" ]; then
+        echo "ERROR: Could not extract version from $skill/SKILL.md" >&2
+        exit 1
+    fi
+    echo "$v"
+}
+
+echo "Building ${REPO_NAME} distribution packages (bundle v${VERSION})..."
 echo ""
 
 # Create dist directory
@@ -48,11 +63,13 @@ for skill in "${SKILLS[@]}"; do
 done
 echo ""
 
-# Build individual skill zips
+# Build individual skill zips (each uses its own SKILL.md version)
 echo "Building individual skill packages..."
 for skill in "${SKILLS[@]}"; do
-    echo "  Packaging: ${skill}-v${VERSION}.zip"
-    zip -rq "$DIST_DIR/${skill}-v${VERSION}.zip" "${skill}/" -x "*/.DS_Store" "*/evaluations/*"
+    skill_version=$(get_skill_version "$skill")
+    zip_name="${skill}-v${skill_version}.zip"
+    echo "  Packaging: ${zip_name}"
+    zip -rq "$DIST_DIR/${zip_name}" "${skill}/" -x "*/.DS_Store" "*/evaluations/*"
 done
 
 # Build complete bundle

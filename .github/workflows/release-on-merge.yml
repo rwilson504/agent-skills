@@ -252,6 +252,22 @@ jobs:
             echo "::endgroup::"
           done
 
+      - name: Build per-skill zip assets
+        if: steps.labels.outputs.noop != 'true'
+        env:
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+        run: |
+          set -e
+          mkdir -p dist
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            zip_name="${s}-v${v}.zip"
+            zip -rq "dist/${zip_name}" "${s}/" -x "*/.DS_Store" "*/evaluations/*"
+            echo "Built dist/${zip_name}"
+          done
+          ls -lh dist/
+
       - name: Create per-skill tags and GitHub Releases
         if: steps.labels.outputs.noop != 'true'
         env:
@@ -265,6 +281,7 @@ jobs:
           for s in $SKILLS; do
             v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
             tag="${s}-v${v}"
+            asset="dist/${s}-v${v}.zip"
             body="$CHANGELOG"
             if [ "$SKIP_CLAWHUB" != "true" ]; then
               body+=$'\n\n'"ClawHub: https://clawhub.ai/skills/$s"
@@ -272,7 +289,8 @@ jobs:
             gh release create "$tag" \
               --title "$tag" \
               --notes "$body" \
-              --target main
+              --target main \
+              "$asset"
           done
 
       - name: Comment on PR

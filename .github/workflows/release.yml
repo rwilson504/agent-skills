@@ -28,15 +28,18 @@ jobs:
         id: notes
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          
-          # Discover skills
+
+          # Discover skills. Per-skill zips are named with each skill's own
+          # version (read from its SKILL.md frontmatter), not the repo tag.
           SKILL_LIST=""
           for skill_file in */SKILL.md; do
             if [ -f "$skill_file" ]; then
               dir=$(dirname "$skill_file")
               # Extract skill name from YAML frontmatter
               name=$(grep -m1 '^name:' "$skill_file" | sed 's/^name:\s*//')
-              SKILL_LIST="${SKILL_LIST}- **${name:-$dir}** — \`${dir}-v${VERSION}.zip\`\n"
+              # Extract the skill's own version from frontmatter `version:` field
+              skill_v=$(awk '/^---$/{i++; next} i==1 && /^version:[[:space:]]*/ {sub(/^version:[[:space:]]*/, ""); print; exit}' "$skill_file")
+              SKILL_LIST="${SKILL_LIST}- **${name:-$dir}** \`v${skill_v}\` — \`${dir}-v${skill_v}.zip\`\n"
             fi
           done
 
@@ -44,10 +47,12 @@ jobs:
           ## Distribution Packages
 
           ### Complete Bundle (Recommended)
-          - **agent-skills-v${VERSION}.zip** — All skills in one package
+          - **agent-skills-v${VERSION}.zip** — All skills in one package (snapshot)
 
           ### Individual Skills
           ${SKILL_LIST}
+          Each skill is versioned independently. The bundle version above is the repo-level snapshot tag.
+
           ### Installation
           Download the complete bundle or individual skill zips from the assets below.
           EOF
