@@ -1,6 +1,6 @@
 ---
 name: n8n-create-nodes
-description: Build production-ready n8n community nodes as npm packages, covering declarative and programmatic node styles. Use when user says "create an n8n node", "build an n8n integration", "scaffold n8n node package", "create n8n credential type", "create webhook trigger node", "create poll trigger", "publish n8n community node", or works with INodeType, n8n-workflow-SDK, n8n-nodes-starter, declarative routing, programmatic execute, or versioned nodes. Do NOT use for n8n workflow building or general workflow automation this skill is specifically for node package development.
+description: Build production-ready n8n community nodes as npm packages, covering declarative and programmatic node styles. Use when user says "create an n8n node", "build an n8n integration", "scaffold n8n node package", "create n8n credential type", "create webhook trigger node", "create poll trigger", "publish n8n community node", or works with INodeType, n8n-workflow-SDK, n8n-nodes-starter, declarative routing, programmatic execute, or versioned nodes. Do NOT use for n8n workflow building or general workflow automation — this skill is specifically for node package development.
 license: MIT-0
 version: 1.0.0
 metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["n8n", "community-nodes", "node-development", "npm-package", "workflow-sdk"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/n8n-create-nodes", "emoji": "🟧" } }
