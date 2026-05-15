@@ -6,11 +6,28 @@ A curated set of [AgentSkills](https://agentskills.io/)-format skills for AI cod
 
 | Skill | What it does | Docs |
 |---|---|---|
-| [`n8n-create-nodes`](n8n-create-nodes/) | Build n8n community node packages — declarative or programmatic | [README](n8n-create-nodes/README.md) |
-| [`power-platform-custom-connector`](power-platform-custom-connector/) | Author Power Platform custom connectors (Independent + Verified Publisher) | [README](power-platform-custom-connector/README.md) |
-| [`dataverse-classic-workflow`](dataverse-classic-workflow/) | Read, edit, copy, and publish Dataverse WF4/XAML classic workflows | [README](dataverse-classic-workflow/README.md) |
+| [`n8n-create-nodes`](src/skills/n8n-create-nodes/) | Build n8n community node packages — declarative or programmatic | [README](src/skills/n8n-create-nodes/README.md) |
+| [`power-platform-custom-connector`](src/skills/power-platform-custom-connector/) | Author Power Platform custom connectors (Independent + Verified Publisher) | [README](src/skills/power-platform-custom-connector/README.md) |
+| [`dataverse-classic-workflow`](src/skills/dataverse-classic-workflow/) | Read, edit, copy, and publish Dataverse WF4/XAML classic workflows | [README](src/skills/dataverse-classic-workflow/README.md) |
 
-Each skill is versioned independently and ships its own per-skill zip on every release.
+Each skill is versioned independently and ships its own per-plugin zip on every release.
+
+## Repository layout
+
+```
+src/
+  agents/             # Canonical *.agent.md files (one per agent — none yet)
+  skills/             # Canonical skill folders, edited by humans
+    <skill>/SKILL.md
+plugins.yml           # Composition manifest: which agents/skills go in each plugin
+plugins/              # GENERATED — do not edit. Built from src/ + plugins.yml.
+  <plugin>/
+    plugin.json       # Generated per-plugin manifest
+    skills/<skill>/   # Copied from src/skills/<skill>/
+.github/plugin/marketplace.json   # GENERATED — Copilot CLI marketplace listing
+```
+
+The `plugins/` tree and `marketplace.json` are produced by [`scripts/build-plugins.ps1`](scripts/build-plugins.ps1) and validated by [`scripts/lint.ps1`](scripts/lint.ps1) (which detects drift between `src/` and `plugins/` via SHA256 folder hashes).
 
 ## Installation
 
@@ -74,18 +91,33 @@ Download the per-skill zip from the [latest release](https://github.com/rwilson5
 
 Each release contains:
 
-- `agent-skills-v<version>.zip` — full bundle (all skills, snapshot)
-- `<skill>-v<version>.zip` — one per skill, using each skill's own `version:` from its `SKILL.md`
+- `agent-skills-v<version>.zip` — full bundle (all plugins, snapshot)
+- `<plugin>-v<version>.zip` — one per plugin, using each plugin's own `version:` from `plugins.yml`
 
 ## Build
 
 ```bash
-./build.sh                    # bundle uses repo-wide version arg, per-skill zips use SKILL.md versions
+# Regenerate plugins/ + marketplace.json from src/ + plugins.yml (idempotent)
+pwsh scripts/build-plugins.ps1
+
+# Validate (frontmatter, version coherence, src↔plugins drift, marketplace listing)
+pwsh scripts/lint.ps1
+
+# Produce zip artifacts in dist/ (regenerates plugins/ first)
+./build.sh                    # bundle uses git tag, per-plugin zips use plugin.json versions
 ./build.sh 1.2.3              # explicit bundle version
 .\build.ps1 -Version 1.2.3    # PowerShell equivalent
 ```
 
-Output zips are written to the `dist/` folder. Per-skill zip filenames reflect each skill's own `version:` from its `SKILL.md` frontmatter; the bundle uses the CLI argument or the latest `v*` tag.
+Output zips are written to `dist/`. Per-plugin zip filenames reflect each plugin's `version:` field; the bundle uses the CLI argument or the latest `v*` tag.
+
+### Bumping a skill version
+
+```bash
+node scripts/bump-skill-version.mjs <skill> patch|minor|major|X.Y.Z
+```
+
+This updates `src/skills/<skill>/SKILL.md` (top-level + `metadata.version`) and `plugins.yml` atomically, then regenerates `plugins/` and `marketplace.json` so everything stays in sync.
 
 ## Releasing
 
@@ -93,8 +125,12 @@ Releases are label-driven. Open a PR, tag it `skill:<name>` + `bump:<patch|minor
 
 ## Contributing
 
-1. Each skill lives in its own top-level folder with a `SKILL.md`, a `README.md`, and a `references/` directory (or `reference/` for the Dataverse bundle).
-2. Add new skills by mirroring the existing layout — see any per-skill folder for the template.
+1. Each skill lives in `src/skills/<name>/` with a `SKILL.md`, a `README.md`, and a `references/` directory (or `reference/` for the Dataverse bundle). Never edit anything under `plugins/` directly — that tree is regenerated from `src/` + `plugins.yml`.
+2. Add a new skill by:
+   - Creating `src/skills/<name>/` (mirror an existing skill's layout)
+   - Adding an entry under `plugins:` in [`plugins.yml`](plugins.yml)
+   - Running `pwsh scripts/build-plugins.ps1` and committing the regenerated `plugins/` + `marketplace.json`
+   - Running `pwsh scripts/lint.ps1` to confirm everything is in sync
 3. Open a PR with the appropriate `skill:<name>` and `bump:<patch|minor|major>` labels.
 
 ## License

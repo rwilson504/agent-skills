@@ -1,0 +1,20 @@
+{
+  "id": "eval-001-create-simple-declarative-node",
+  "skills": ["n8n-create-nodes"],
+  "query": "Create an n8n community node that wraps the JSONPlaceholder REST API. It should support getting a single post by ID, getting all posts, and creating a new post. Use the declarative style since it's a simple REST wrapper.",
+  "expected_behavior": [
+    "Uses n8n-nodes-starter as the base template",
+    "Creates a declarative node with requestDefaults pointing to https://jsonplaceholder.typicode.com",
+    "Defines resource 'post' with operations: get, getAll, create",
+    "Each operation has routing.request with correct HTTP method and URL path",
+    "Uses displayOptions.show to conditionally display fields per operation",
+    "Includes noDataExpression: true on resource and operation selectors",
+    "Includes action field on each operation option",
+    "Creates a codex .node.json file with correct metadata",
+    "Creates proper package.json with n8n-nodes- prefix",
+    "Does NOT include an execute() method",
+    "Has correct naming: class name matches filename"
+  ],
+  "baseline_without_skill": "Agent may mix declarative and programmatic patterns, forget routing keys, use incorrect file structure, or omit required fields like action, noDataExpression, or codex file.",
+  "with_skill_expected": "Agent produces a complete, correctly structured declarative node package with all required files, proper routing configuration, and follows n8n naming conventions."
+}

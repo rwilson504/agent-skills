@@ -1,0 +1,19 @@
+{
+  "id": "eval-005-create-versioned-node",
+  "skills": ["n8n-create-nodes"],
+  "query": "I have an existing n8n node at version 1 and need to add a version 2 that introduces a new 'upsert' operation on the contact resource while keeping backward compatibility with v1. How should I structure the versioned node?",
+  "expected_behavior": [
+    "Creates a base node class extending VersionedNodeType",
+    "Defines nodeVersions map: { 1: new MyNodeV1(), 2: new MyNodeV2() }",
+    "Sets currentVersion to 2",
+    "Creates separate V1 and V2 node classes each implementing INodeType",
+    "V1 class preserves all existing behavior unmodified",
+    "V2 class adds the new upsert operation to the contact resource",
+    "Uses INodeTypeBaseDescription in the base class",
+    "Each version class has its own complete INodeTypeDescription",
+    "Version files in V1/ and V2/ subdirectories or named with version suffix",
+    "Main node file acts as router between versions"
+  ],
+  "baseline_without_skill": "Agent may modify v1 directly (breaking backward compatibility), skip VersionedNodeType, create incorrect version routing, or not understand the versioning pattern.",
+  "with_skill_expected": "Agent produces a correctly versioned node structure with VersionedNodeType base, separate version implementations, and proper backward compatibility."
+}

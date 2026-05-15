@@ -1,34 +1,42 @@
 #!/usr/bin/env node
-// Bump version for a single skill across all files that track it.
+// Bump version for a single skill / plugin.
 //
 // Usage:
 //   node scripts/bump-skill-version.mjs <skill-folder> <patch|minor|major|X.Y.Z>
 //
 // Updates atomically:
-//   1. <skill>/SKILL.md    — top-level `version:` AND `metadata.version`
-//   2. <skill>/.github/plugin/plugin.json — `version`
-//   3. .github/plugin/marketplace.json — plugins[<skill>].version
+//   1. src/skills/<skill>/SKILL.md  — top-level `version:` AND `metadata.version`
+//   2. plugins.yml                  — plugins.<skill>.version
+//      (assumes plugin name == skill name; this matches the current 1:1
+//      layout. If a plugin ever bundles multiple skills with diverging
+//      versions, this script will need to grow.)
+//
+// Then runs `pwsh scripts/build-plugins.ps1` so plugins/ and
+// .github/plugin/marketplace.json are regenerated from the bumped sources.
 //
 // Prints the new version to stdout (last line) so the caller can capture it.
 // Exits non-zero on any inconsistency or missing file.
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { spawnSync } from "node:child_process";
 
 const [, , skill, bumpArg] = process.argv;
 
 if (!skill || !bumpArg) {
-  console.error("Usage: node scripts/bump-skill-version.mjs <skill-folder> <patch|minor|major|X.Y.Z>");
+  console.error(
+    "Usage: node scripts/bump-skill-version.mjs <skill-folder> <patch|minor|major|X.Y.Z>"
+  );
   process.exit(2);
 }
 
 const repoRoot = resolve(process.cwd());
-const skillDir = join(repoRoot, skill);
+const skillDir = join(repoRoot, "src", "skills", skill);
 const skillMdPath = join(skillDir, "SKILL.md");
-const pluginJsonPath = join(skillDir, ".github", "plugin", "plugin.json");
-const marketplacePath = join(repoRoot, ".github", "plugin", "marketplace.json");
+const pluginsYmlPath = join(repoRoot, "plugins.yml");
+const buildScriptPath = join(repoRoot, "scripts", "build-plugins.ps1");
 
-for (const p of [skillDir, skillMdPath, pluginJsonPath, marketplacePath]) {
+for (const p of [skillDir, skillMdPath, pluginsYmlPath, buildScriptPath]) {
   if (!existsSync(p)) {
     console.error(`Missing required path: ${p}`);
     process.exit(1);
@@ -103,22 +111,44 @@ newFm = newFm.replace(
 const newSkillMd = skillMd.replace(fm, newFm);
 writeFileSync(skillMdPath, newSkillMd);
 
-// --- 2. Rewrite per-skill plugin.json --------------------------------------
+// --- 2. Rewrite plugins.yml plugin version ---------------------------------
+//
+// Targeted regex update: find the `<skill>:` map key under `plugins:`, then
+// replace the first `version: ...` line under it. We deliberately avoid a
+// full YAML round-trip so we don't reflow comments or quoting. Plugin entries
+// in plugins.yml use 2-space indent for the key and 4-space indent for fields.
 
-const pluginJson = JSON.parse(readFileSync(pluginJsonPath, "utf8"));
-pluginJson.version = newVersion;
-writeFileSync(pluginJsonPath, JSON.stringify(pluginJson, null, 2) + "\n");
-
-// --- 3. Rewrite marketplace.json entry -------------------------------------
-
-const marketplace = JSON.parse(readFileSync(marketplacePath, "utf8"));
-const entry = marketplace.plugins.find((p) => p.name === skill);
-if (!entry) {
-  console.error(`No plugins[].name == '${skill}' in ${marketplacePath}`);
+const pluginsYml = readFileSync(pluginsYmlPath, "utf8");
+const pluginBlockRe = new RegExp(
+  String.raw`(^  ${skill}:\s*\r?\n(?:(?:    [^\r\n]*|\s*)\r?\n)*?    version:\s*)\S+(\s*\r?\n)`,
+  "m"
+);
+if (!pluginBlockRe.test(pluginsYml)) {
+  console.error(
+    `Could not find 'version:' line under plugin '${skill}' in ${pluginsYmlPath}`
+  );
   process.exit(1);
 }
-entry.version = newVersion;
-writeFileSync(marketplacePath, JSON.stringify(marketplace, null, 2) + "\n");
+const newPluginsYml = pluginsYml.replace(pluginBlockRe, `$1${newVersion}$2`);
+if (newPluginsYml === pluginsYml) {
+  console.error(`plugins.yml unchanged after replace for plugin '${skill}'`);
+  process.exit(1);
+}
+writeFileSync(pluginsYmlPath, newPluginsYml);
+
+// --- 3. Regenerate plugins/ + marketplace.json -----------------------------
+
+console.error(`[${skill}] running scripts/build-plugins.ps1 to regenerate artifacts...`);
+const result = spawnSync("pwsh", ["-NoProfile", "-File", buildScriptPath], {
+  cwd: repoRoot,
+  stdio: ["ignore", "inherit", "inherit"],
+});
+if (result.status !== 0) {
+  console.error(
+    `scripts/build-plugins.ps1 failed (exit ${result.status}). plugins/ may be stale.`
+  );
+  process.exit(result.status ?? 1);
+}
 
 // Last line of stdout = new version, for shell capture.
 process.stdout.write(newVersion + "\n");

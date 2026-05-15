@@ -1,0 +1,19 @@
+# ClawHub publish ignore patterns.
+# See https://docs.openclaw.ai/clawhub/skill-format
+
+# Eval scenarios are test inputs, not skill content.
+evaluations/
+
+# GitHub Copilot CLI plugin manifest is irrelevant to ClawHub consumers.
+.github/
+
+# Build artifacts.
+dist/
+*.zip
+*.tgz
+
+# Editor / OS junk.
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp

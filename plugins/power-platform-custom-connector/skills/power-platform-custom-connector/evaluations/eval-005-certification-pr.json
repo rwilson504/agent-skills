@@ -1,0 +1,50 @@
+{
+  "id": "eval-005",
+  "title": "Prepare Connector for Certification PR",
+  "description": "Take an existing connector and ensure it passes all certification requirements for a pull request to the PowerPlatformConnectors repository.",
+  "difficulty": "advanced",
+  "input": {
+    "userPrompt": "I have a working connector for 'Acme Notifications' with 3 operations (List Channels, Send Notification, Get Notification Status). It uses OAuth 2.0 Generic auth (not AAD). Review it and make sure it's ready for submission as an Independent Publisher connector to the PowerPlatformConnectors GitHub repo. Tell me what files I need, what checks pass/fail, and fix any issues.",
+    "context": {
+      "authType": "oauthGeneric",
+      "publisherType": "independent",
+      "operationCount": 3,
+      "existingConnector": true,
+      "targetRepo": "microsoft/PowerPlatformConnectors",
+      "targetBranch": "dev",
+      "targetDirectory": "independent-publisher-connectors/AcmeNotifications"
+    }
+  },
+  "expectedOutput": {
+    "files": [
+      "apiDefinition.swagger.json",
+      "apiProperties.json",
+      "readme.md"
+    ],
+    "checklist": [
+      "swagger: 2.0 (not OpenAPI 3.0)",
+      "All operations have operationId, summary, description",
+      "All parameters have x-ms-summary",
+      "All response schemas fully defined with x-ms-summary",
+      "x-ms-connector-metadata present with Website, Privacy policy, Categories",
+      "iconBrandColor is #da3b01",
+      "No real secrets in files",
+      "OAuth config uses placeholder client ID",
+      "readme.md has all required sections",
+      "directory name matches connector name",
+      "PR targets dev branch"
+    ]
+  },
+  "evaluationCriteria": [
+    "Validates swagger format is 2.0",
+    "Checks all operations for required fields (operationId, summary, description)",
+    "Verifies x-ms-summary on all parameters and response properties",
+    "Confirms x-ms-connector-metadata array with all 3 required entries",
+    "Validates brand color is #da3b01 for Independent Publisher",
+    "Scans for real secrets/credentials and replaces with placeholders",
+    "Verifies OAuth configuration completeness (scopes, redirectUrl, properties)",
+    "Checks readme.md structure against template",
+    "Provides deployment commands (paconn create)",
+    "Lists PR submission instructions (target dev branch, screenshots required)"
+  ]
+}

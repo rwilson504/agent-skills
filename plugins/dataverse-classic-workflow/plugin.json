@@ -1,0 +1,32 @@
+{
+  "name": "dataverse-classic-workflow",
+  "description": "Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Bundles a top-level orchestrator plus 7 sub-skills and a shared knowledge base.",
+  "version": "1.0.1",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "dataverse",
+    "power-platform",
+    "classic-workflow",
+    "workflow-foundation",
+    "wf4",
+    "xaml",
+    "pac-cli"
+  ],
+  "tags": [
+    "dataverse",
+    "power-platform",
+    "classic-workflow",
+    "workflow-foundation",
+    "wf4",
+    "xaml",
+    "pac-cli"
+  ],
+  "skills": "skills/"
+}

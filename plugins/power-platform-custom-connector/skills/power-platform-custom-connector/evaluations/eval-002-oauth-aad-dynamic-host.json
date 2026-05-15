@@ -1,0 +1,51 @@
+{
+  "id": "eval-002",
+  "title": "Create OAuth AAD Connector with Dynamic Host URL",
+  "description": "Build a connector using OAuth 2.0 with Azure Active Directory authentication and a dynamic host URL via policy template (Key Vault pattern).",
+  "difficulty": "intermediate",
+  "input": {
+    "userPrompt": "Create a Power Platform custom connector for Azure Key Vault. It should authenticate using OAuth 2.0 with Azure AD. The user provides their vault name at connection time, and the connector routes requests to https://{vaultName}.vault.azure.net. Operations: 'List Secrets' (GET /secrets?api-version=7.4) and 'Get Secret Value' (GET /secrets/{secretName}?api-version=7.4).",
+    "context": {
+      "authType": "oauthAAD",
+      "publisherType": "verified",
+      "useDynamicHost": true,
+      "resourceUri": "https://vault.azure.net"
+    }
+  },
+  "expectedOutput": {
+    "files": [
+      "apiDefinition.swagger.json",
+      "apiProperties.json",
+      "readme.md"
+    ],
+    "mustContain": {
+      "apiDefinition.swagger.json": [
+        "\"swagger\": \"2.0\"",
+        "\"oauth2\"",
+        "\"accessCode\"",
+        "\"operationId\": \"ListSecrets\"",
+        "\"operationId\": \"GetSecretValue\"",
+        "\"api-version\"",
+        "\"x-ms-visibility\": \"internal\""
+      ],
+      "apiProperties.json": [
+        "\"oauthSetting\"",
+        "\"identityProvider\": \"aad\"",
+        "\"dynamichosturl\"",
+        "\"vaultName\"",
+        "\"resourceUri\"",
+        "\"vault.azure.net\""
+      ]
+    }
+  },
+  "evaluationCriteria": [
+    "OAuth 2.0 security definition with accessCode flow",
+    "apiProperties has oauthSetting with identityProvider aad",
+    "customParameters include loginUri, tenantId, resourceUri",
+    "Dynamic host URL policy template configured correctly",
+    "Connection parameter for vaultName (type: string, not securestring)",
+    "api-version parameter is internal with default value",
+    "Response schemas define Key Vault secret structure",
+    "Placeholder host in swagger (not real vault URL)"
+  ]
+}
