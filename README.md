@@ -314,6 +314,8 @@ Each skill is published to [ClawHub](https://clawhub.ai), the OpenClaw registry.
 
 The publish pipeline lives in [.github/workflows/clawhub-publish.yml](.github/workflows/clawhub-publish.yml) and is triggered manually (`workflow_dispatch`) so we can dry-run, attach changelogs, and review ClawScan results before each push.
 
+> **Note:** ClawHub publishing is temporarily paused while we work with ClawHub support to resolve a connection issue. Existing published skill versions remain installable via the OpenClaw CLI; new versions will resume publishing once the connection is restored.
+
 ### 3. Pre-built Zip Releases
 
 Pre-built zip packages are published on the [Releases](https://github.com/rwilson504/agent-skills/releases) page for agents that don't speak the Copilot CLI plugin protocol or use the ClawHub registry (Cursor, Windsurf, manual installs, air-gapped environments, etc.).
