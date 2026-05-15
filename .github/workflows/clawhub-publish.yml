@@ -119,8 +119,7 @@ jobs:
                 --version "$VERSION" \
                 --tags latest \
                 --changelog "$CHANGELOG" \
-                --clawscan-note "$note" \
-                --json
+                --clawscan-note "$note"
             fi
 
             echo "::endgroup::"
