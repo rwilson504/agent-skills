@@ -48,13 +48,20 @@ jobs:
 
           skills=()
           bumps=()
-          skip_clawhub=false
+          # ClawHub publishing is temporarily disabled while we work with
+          # ClawHub support to resolve a connection issue. Force skip_clawhub
+          # to true so the version-bump / tag / release flow still runs but
+          # the ClawHub install/auth/publish steps are skipped via the
+          # existing `skip_clawhub` guards. To re-enable, change the default
+          # back to `false` and uncomment the `release:skip-clawhub` case
+          # below so the label can override per-PR again.
+          skip_clawhub=true
 
           for n in "${names[@]}"; do
             case "$n" in
               skill:*) skills+=("${n#skill:}") ;;
               bump:patch|bump:minor|bump:major) bumps+=("${n#bump:}") ;;
-              release:skip-clawhub) skip_clawhub=true ;;
+              # release:skip-clawhub) skip_clawhub=true ;;  # disabled — see note above
             esac
           done
 

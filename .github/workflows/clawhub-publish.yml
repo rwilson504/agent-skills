@@ -1,142 +1,168 @@
-name: Publish to ClawHub
+name: Publish to ClawHub (disabled)
 
-# Manual-only trigger so we can dry-run, attach changelogs, and review
-# ClawScan results before each push to the registry.
-# Per ClawHub guidance:
-#   "Real publishes should be limited to trusted events such as
-#    workflow_dispatch or tag pushes."
+# -----------------------------------------------------------------------------
+# DISABLED: ClawHub publishing is paused while we work with ClawHub technical
+# support to resolve a connection / auth issue. The original workflow is
+# preserved below as comments — to re-enable, delete this stub and uncomment
+# the block at the bottom of this file.
+# -----------------------------------------------------------------------------
+
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Semver version to publish (e.g. 1.0.0). Bump both top-level and metadata.version in SKILL.md to match before running."
-        required: true
-        type: string
-      skills:
-        description: "Which skills to publish"
-        required: true
-        type: choice
-        default: all
-        options:
-          - all
-          - n8n-create-nodes
-          - power-platform-custom-connector
-          - dataverse-classic-workflow
-      changelog:
-        description: "Changelog message attached to this version"
-        required: true
-        type: string
-        default: "Initial ClawHub release"
-      dry_run:
-        description: "Resolve and validate without publishing"
-        required: true
-        type: boolean
-        default: true
 
 permissions:
   contents: read
 
 jobs:
-  publish:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-
-      - name: Install ClawHub CLI
-        run: npm i -g clawhub
-
-      - name: Verify CLI install
+      - name: ClawHub publish is disabled
         run: |
-          clawhub --cli-version
-          echo "---"
-          clawhub --help | head -40
+          echo "::warning::Publishing to ClawHub is currently disabled while we work with ClawHub support."
+          echo "See .github/workflows/clawhub-publish.yml for the original (commented-out) workflow."
+          exit 1
 
-      - name: Authenticate (skipped in dry-run)
-        if: ${{ inputs.dry_run == false }}
-        env:
-          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
-        run: |
-          if [ -z "$CLAWHUB_TOKEN" ]; then
-            echo "::error::CLAWHUB_TOKEN secret is not set. Add it under Settings → Secrets and variables → Actions."
-            exit 1
-          fi
-          # Show login flags to surface any CLI-version drift in logs.
-          clawhub login --help || true
-          # The CLI auto-reads the CLAWHUB_TOKEN env var; the explicit --token
-          # flag is also supported.
-          clawhub login --token "$CLAWHUB_TOKEN"
-          clawhub whoami
-
-      - name: Build skill list
-        id: list
-        run: |
-          if [ "${{ inputs.skills }}" = "all" ]; then
-            echo "skills=n8n-create-nodes power-platform-custom-connector dataverse-classic-workflow" >> "$GITHUB_OUTPUT"
-          else
-            echo "skills=${{ inputs.skills }}" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Show skill publish help
-        run: |
-          clawhub skill --help || true
-          echo "---"
-          clawhub skill publish --help || true
-
-      - name: Publish skills
-        env:
-          VERSION: ${{ inputs.version }}
-          CHANGELOG: ${{ inputs.changelog }}
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          set -e
-          # Per-skill ClawScan notes — give ClawScan context for behavior
-          # that may otherwise look unusual. See https://docs.openclaw.ai/clawhub/security-audits
-          declare -A NOTES
-          NOTES[n8n-create-nodes]="Teaches scaffolding of npm-published n8n community nodes. Generated code requires user-provided npm credentials at publish time. No credentials stored or transmitted by the skill itself."
-          NOTES[power-platform-custom-connector]="Teaches authoring of Power Platform custom connectors. OAuth client IDs/secrets in examples are placeholders. Certification submission uses standard pac connector flows against user-authenticated PAC CLI sessions."
-          NOTES[dataverse-classic-workflow]="Edits Dataverse Classic Workflow XAML and uses Microsoft's documented Process Template clone workaround for the legacy designer's Activate bug. All Dataverse operations go through user-authenticated pac CLI; no credentials read or stored."
-
-          for skill in ${{ steps.list.outputs.skills }}; do
-            note="${NOTES[$skill]}"
-            echo "::group::Publish $skill@$VERSION"
-
-            if [ "$DRY_RUN" = "true" ]; then
-              echo "DRY-RUN: would publish ./$skill --version $VERSION --tags latest --changelog \"$CHANGELOG\" --clawscan-note \"$note\""
-              # The skill publish CLI does not have a --dry-run flag (only package publish does),
-              # so we just show what would be sent.
-              echo "Skill content:"
-              ls -la "./$skill"
-              echo "Effective .clawhubignore:"
-              cat "./$skill/.clawhubignore" 2>/dev/null || echo "(none)"
-            else
-              clawhub skill publish "./$skill" \
-                --version "$VERSION" \
-                --tags latest \
-                --changelog "$CHANGELOG" \
-                --clawscan-note "$note"
-            fi
-
-            echo "::endgroup::"
-          done
-
-      - name: Summary
-        if: always()
-        run: |
-          echo "## ClawHub publish summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Version: \`${{ inputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Skills: \`${{ steps.list.outputs.skills }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Dry-run: \`${{ inputs.dry_run }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ inputs.dry_run }}" = "false" ]; then
-            echo "Inspect published versions:" >> "$GITHUB_STEP_SUMMARY"
-            for skill in ${{ steps.list.outputs.skills }}; do
-              echo "- \`clawhub inspect $skill --version ${{ inputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
-            done
-          fi
+# -----------------------------------------------------------------------------
+# ORIGINAL WORKFLOW (commented out — restore when ClawHub connection is fixed)
+# -----------------------------------------------------------------------------
+# # Manual-only trigger so we can dry-run, attach changelogs, and review
+# # ClawScan results before each push to the registry.
+# # Per ClawHub guidance:
+# #   "Real publishes should be limited to trusted events such as
+# #    workflow_dispatch or tag pushes."
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: "Semver version to publish (e.g. 1.0.0). Bump both top-level and metadata.version in SKILL.md to match before running."
+#         required: true
+#         type: string
+#       skills:
+#         description: "Which skills to publish"
+#         required: true
+#         type: choice
+#         default: all
+#         options:
+#           - all
+#           - n8n-create-nodes
+#           - power-platform-custom-connector
+#           - dataverse-classic-workflow
+#       changelog:
+#         description: "Changelog message attached to this version"
+#         required: true
+#         type: string
+#         default: "Initial ClawHub release"
+#       dry_run:
+#         description: "Resolve and validate without publishing"
+#         required: true
+#         type: boolean
+#         default: true
+#
+# permissions:
+#   contents: read
+#
+# jobs:
+#   publish:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v4
+#
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v4
+#         with:
+#           node-version: "20"
+#
+#       - name: Install ClawHub CLI
+#         run: npm i -g clawhub
+#
+#       - name: Verify CLI install
+#         run: |
+#           clawhub --cli-version
+#           echo "---"
+#           clawhub --help | head -40
+#
+#       - name: Authenticate (skipped in dry-run)
+#         if: ${{ inputs.dry_run == false }}
+#         env:
+#           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+#         run: |
+#           if [ -z "$CLAWHUB_TOKEN" ]; then
+#             echo "::error::CLAWHUB_TOKEN secret is not set. Add it under Settings → Secrets and variables → Actions."
+#             exit 1
+#           fi
+#           # Show login flags to surface any CLI-version drift in logs.
+#           clawhub login --help || true
+#           # The CLI auto-reads the CLAWHUB_TOKEN env var; the explicit --token
+#           # flag is also supported.
+#           clawhub login --token "$CLAWHUB_TOKEN"
+#           clawhub whoami
+#
+#       - name: Build skill list
+#         id: list
+#         run: |
+#           if [ "${{ inputs.skills }}" = "all" ]; then
+#             echo "skills=n8n-create-nodes power-platform-custom-connector dataverse-classic-workflow" >> "$GITHUB_OUTPUT"
+#           else
+#             echo "skills=${{ inputs.skills }}" >> "$GITHUB_OUTPUT"
+#           fi
+#
+#       - name: Show skill publish help
+#         run: |
+#           clawhub skill --help || true
+#           echo "---"
+#           clawhub skill publish --help || true
+#
+#       - name: Publish skills
+#         env:
+#           VERSION: ${{ inputs.version }}
+#           CHANGELOG: ${{ inputs.changelog }}
+#           DRY_RUN: ${{ inputs.dry_run }}
+#         run: |
+#           set -e
+#           # Per-skill ClawScan notes — give ClawScan context for behavior
+#           # that may otherwise look unusual. See https://docs.openclaw.ai/clawhub/security-audits
+#           declare -A NOTES
+#           NOTES[n8n-create-nodes]="Teaches scaffolding of npm-published n8n community nodes. Generated code requires user-provided npm credentials at publish time. No credentials stored or transmitted by the skill itself."
+#           NOTES[power-platform-custom-connector]="Teaches authoring of Power Platform custom connectors. OAuth client IDs/secrets in examples are placeholders. Certification submission uses standard pac connector flows against user-authenticated PAC CLI sessions."
+#           NOTES[dataverse-classic-workflow]="Edits Dataverse Classic Workflow XAML and uses Microsoft's documented Process Template clone workaround for the legacy designer's Activate bug. All Dataverse operations go through user-authenticated pac CLI; no credentials read or stored."
+#
+#           for skill in ${{ steps.list.outputs.skills }}; do
+#             note="${NOTES[$skill]}"
+#             echo "::group::Publish $skill@$VERSION"
+#
+#             if [ "$DRY_RUN" = "true" ]; then
+#               echo "DRY-RUN: would publish ./$skill --version $VERSION --tags latest --changelog \"$CHANGELOG\" --clawscan-note \"$note\""
+#               # The skill publish CLI does not have a --dry-run flag (only package publish does),
+#               # so we just show what would be sent.
+#               echo "Skill content:"
+#               ls -la "./$skill"
+#               echo "Effective .clawhubignore:"
+#               cat "./$skill/.clawhubignore" 2>/dev/null || echo "(none)"
+#             else
+#               clawhub skill publish "./$skill" \
+#                 --version "$VERSION" \
+#                 --tags latest \
+#                 --changelog "$CHANGELOG" \
+#                 --clawscan-note "$note"
+#             fi
+#
+#             echo "::endgroup::"
+#           done
+#
+#       - name: Summary
+#         if: always()
+#         run: |
+#           echo "## ClawHub publish summary" >> "$GITHUB_STEP_SUMMARY"
+#           echo "" >> "$GITHUB_STEP_SUMMARY"
+#           echo "- Version: \`${{ inputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+#           echo "- Skills: \`${{ steps.list.outputs.skills }}\`" >> "$GITHUB_STEP_SUMMARY"
+#           echo "- Dry-run: \`${{ inputs.dry_run }}\`" >> "$GITHUB_STEP_SUMMARY"
+#           echo "" >> "$GITHUB_STEP_SUMMARY"
+#           if [ "${{ inputs.dry_run }}" = "false" ]; then
+#             echo "Inspect published versions:" >> "$GITHUB_STEP_SUMMARY"
+#             for skill in ${{ steps.list.outputs.skills }}; do
+#               echo "- \`clawhub inspect $skill --version ${{ inputs.version }}\`" >> "$GITHUB_STEP_SUMMARY"
+#             done
+#           fi
