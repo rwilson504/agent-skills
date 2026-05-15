@@ -115,7 +115,11 @@ to standalone skills (which would also require new entries in
 - If you add a new field to `metadata.openclaw`, update this instruction
   file's table above so the convention stays discoverable.
 - Bump both top-level `version:` AND `metadata.version` together on every
-  release. Mismatched versions confuse the ClawHub publish CLI.
+  release. **Easiest way:** `node scripts/bump-skill-version.mjs <skill> patch`
+  — also updates `<skill>/.github/plugin/plugin.json` and
+  `.github/plugin/marketplace.json` in one shot. Or just merge a PR with
+  the right release labels and let `release-on-merge.yml` do it for you
+  (see release procedure below).
 
 ## When adding a new skill
 
@@ -131,45 +135,82 @@ to standalone skills (which would also require new entries in
    `SKILL.md` presence — no edits needed there.
 6. Add a `claude install-github-skill ...` line to the README's Claude Code
    section so Claude users get a copy-paste install command.
-7. Add the skill to `.github/workflows/clawhub-publish.yml`'s skill list
-   (both the `skills` input `choice:` enum AND the publish step's iteration)
-   so it ships to ClawHub on the next manual workflow run.
+7. Add the skill to **both** ClawHub workflows' skill lists:
+   - `.github/workflows/clawhub-publish.yml` — the `skills` input `choice:`
+     enum, the `Build skill list` step's `all` branch, and the
+     `Publish skills` step's `NOTES` associative array
+   - `.github/workflows/release-on-merge.yml` — the `NOTES` associative
+     array in the `Real publish to ClawHub` step
+   Also create a `skill:<new-slug>` GitHub label so the label-driven
+   release workflow can target it: `gh label create skill:<new-slug>
+   --color BFD4F2 --description "Release this skill on merge"`
 
 ## Publishing to ClawHub (release procedure)
 
-Use this checklist for every ClawHub release — initial publish or version
-bump. The workflow lives at `.github/workflows/clawhub-publish.yml` and is
-**manual-trigger only** (`workflow_dispatch`).
+The repo has TWO release workflows. Use the **label-driven** one for normal
+changes; use the manual one for ad-hoc publishes.
+
+### Primary: PR-label release (`release-on-merge.yml`)
+
+This is the everyday release path. When a PR is merged into `main` with the
+right labels, the workflow automatically:
+
+1. Bumps versions in all 3 files (`SKILL.md` top + `metadata.version`,
+   `<skill>/.github/plugin/plugin.json`, `.github/plugin/marketplace.json`)
+   via `scripts/bump-skill-version.mjs`
+2. Validates the bumps are consistent across files (sanity check)
+3. Commits the bumps to `main` with a `chore(release): ...` message
+4. Publishes each labeled skill to ClawHub
+5. Creates per-skill git tags (`<skill>-v<version>`) and GitHub Releases
+   with the changelog + ClawHub link
+6. Comments on the PR with the new versions and links
+
+**Required labels:**
+
+| Label | Purpose |
+|-------|---------|
+| `skill:<slug>` | Which skill to release. Multi-allowed for parallel releases. Slugs: `n8n-create-nodes`, `power-platform-custom-connector`, `dataverse-classic-workflow`. |
+| `bump:patch` \| `bump:minor` \| `bump:major` | Exactly one. Determines semver bump type. |
+| `release:skip-clawhub` (optional) | Bumps versions and tags but skips ClawHub publish. Use for pure docs changes you want versioned. |
+
+**Changelog source:** PR title by default. To provide longer release notes,
+add a `## Changelog` section to the PR body — its contents (up to the next
+`## ` heading) become the changelog instead.
+
+**Failure modes:**
+- No `skill:*` labels → workflow no-ops (logs "nothing to release")
+- No `bump:*` label → workflow fails with clear error
+- Multiple `bump:*` labels → workflow fails (conflict)
+- Bumped version already exists in ClawHub → publish step fails; bumps are
+  already committed, so recover by labeling a follow-up PR with the next
+  bump level
+
+### Fallback: Manual workflow (`clawhub-publish.yml`)
+
+Use only when you need to publish without going through a PR — e.g.,
+re-publishing after a registry-side issue, or shipping a hand-edited bundle.
+This workflow does NOT bump version files; you must bump them yourself
+first.
 
 1. **Bump versions in the SKILL.md** you're shipping:
    - Top-level `version: X.Y.Z`
    - `metadata.version` inside the single-line JSON
    Both MUST match the `version` workflow input. Mismatched versions cause
-   the ClawHub publish CLI to reject the bundle.
-2. **Commit and push to `main`.** The workflow checks out `main` (or the
-   ref you select in the Run workflow dialog).
+   the ClawHub publish CLI to reject the bundle. (Use
+   `node scripts/bump-skill-version.mjs <skill> <patch|minor|major|X.Y.Z>`
+   to do all 3 files at once.)
+2. **Commit and push to `main`.**
 3. **Dry-run first.** GitHub UI → Actions → "Publish to ClawHub" → Run
-   workflow:
-   - `version`: `X.Y.Z`
-   - `skills`: `all` or a specific slug
-   - `changelog`: short description
-   - `dry_run`: **true**
-   The dry-run skips auth and prints what would be published. Confirm
-   the green check before continuing.
-4. **Real publish.** Re-run the workflow with the same inputs except
-   `dry_run`: **false**. The workflow uses the `CLAWHUB_TOKEN` repo
-   secret to authenticate and publishes via
-   `clawhub skill publish <path> --version <X.Y.Z> --tags latest --changelog "..." --clawscan-note "..."`.
-5. **Verify** by visiting `https://clawhub.ai/skills/<slug>` for each
-   published skill. The workflow log also prints the new skill ID per
-   slug under `✓ OK. Published <slug>@<version> (<id>)`.
+   workflow with `dry_run: true`.
+4. **Real publish.** Re-run with `dry_run: false`.
+5. **Verify** at `https://clawhub.ai/skills/<slug>`.
 
 ### Operational gotchas
 
 - **CLI flag drift.** ClawHub CLI flags have changed between versions
   (e.g. `--version` → `--cli-version` in v0.15). Always read the failing
   job log before assuming the workflow is broken — fix the flag and
-  re-dry-run. The workflow includes diagnostic steps (`clawhub --help`,
+  re-run. The manual workflow includes diagnostic steps (`clawhub --help`,
   `clawhub skill publish --help`) that print the live flag surface.
 - **Local `clawhub inspect` on Windows can hang** if `NODE_OPTIONS`
   inherits debugger flags from the VS Code session. The GitHub Actions
@@ -179,6 +220,11 @@ bump. The workflow lives at `.github/workflows/clawhub-publish.yml` and is
 - **Republishing the same version is rejected** by ClawHub. To retry a
   failed real-publish, bump the patch version and try again.
 - **ClawScan notes** (`--clawscan-note`) are pre-written per skill in
-  the workflow's associative array. Update them when adding a skill
+  both workflows' associative arrays. Update them when adding a skill
   that has unusual provider CLIs, OAuth flows, or certificate
   submission patterns so the audit pipeline doesn't false-positive.
+- **Copilot CLI / Claude Code don't enforce versions.** Both
+  `gh agent install` and `claude install-github-skill` pull the skill
+  from `main` at install time. The version fields in `plugin.json` /
+  `marketplace.json` are discoverability metadata only. ClawHub is the
+  only consumer that strictly enforces versions.

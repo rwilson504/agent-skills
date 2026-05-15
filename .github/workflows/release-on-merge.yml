@@ -1,0 +1,289 @@
+name: Release on merge
+
+# Label-driven release workflow.
+#
+# When a PR is merged into main with one or more `skill:<slug>` labels and
+# exactly one `bump:<patch|minor|major>` label, this workflow:
+#   1. Computes the next semver per labeled skill
+#   2. Writes the bumps to the working dir (NOT yet committed)
+#   3. Dry-run publishes to ClawHub to catch CLI/bundle issues
+#   4. If dry-run passes: commits the bumps to main, pushes,
+#      real-publishes to ClawHub, creates a per-skill git tag + GitHub Release,
+#      and comments on the PR with the published version + ClawHub URL.
+#   5. If `release:skip-clawhub` label is present: still bumps + tags but
+#      skips the ClawHub publish (use for pure docs changes you want versioned).
+#
+# Labels:
+#   skill:n8n-create-nodes              (multi-allowed)
+#   skill:power-platform-custom-connector
+#   skill:dataverse-classic-workflow
+#   bump:patch | bump:minor | bump:major  (exactly one required)
+#   release:skip-clawhub                (optional)
+#
+# Changelog source:
+#   - Default: PR title
+#   - Override: a `## Changelog` section inside the PR body, if present
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write     # commit version bumps, push tags
+  pull-requests: write # comment on PR
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Parse release labels
+        id: labels
+        env:
+          LABELS_JSON: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          # Extract label names from the PR event payload.
+          mapfile -t names < <(echo "$LABELS_JSON" | jq -r '.[].name')
+
+          skills=()
+          bumps=()
+          skip_clawhub=false
+
+          for n in "${names[@]}"; do
+            case "$n" in
+              skill:*) skills+=("${n#skill:}") ;;
+              bump:patch|bump:minor|bump:major) bumps+=("${n#bump:}") ;;
+              release:skip-clawhub) skip_clawhub=true ;;
+            esac
+          done
+
+          if [ ${#skills[@]} -eq 0 ]; then
+            echo "No skill:* labels — nothing to release." >&2
+            echo "skills=" >> "$GITHUB_OUTPUT"
+            echo "bump=" >> "$GITHUB_OUTPUT"
+            echo "skip_clawhub=$skip_clawhub" >> "$GITHUB_OUTPUT"
+            echo "noop=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ ${#bumps[@]} -eq 0 ]; then
+            echo "::error::Must apply exactly one bump:* label (bump:patch / bump:minor / bump:major)."
+            exit 1
+          fi
+
+          if [ ${#bumps[@]} -gt 1 ]; then
+            echo "::error::Conflicting bump:* labels: ${bumps[*]}. Apply exactly one."
+            exit 1
+          fi
+
+          echo "skills=${skills[*]}" >> "$GITHUB_OUTPUT"
+          echo "bump=${bumps[0]}" >> "$GITHUB_OUTPUT"
+          echo "skip_clawhub=$skip_clawhub" >> "$GITHUB_OUTPUT"
+          echo "noop=false" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if no release labels
+        if: steps.labels.outputs.noop == 'true'
+        run: echo "No release labels on this PR; skipping."
+
+      - name: Checkout main with full history
+        if: steps.labels.outputs.noop != 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          # Needed so the bot push triggers other workflows if desired
+          # (currently we don't chain anything, but keeps the option open).
+          persist-credentials: true
+
+      - name: Set up Node.js
+        if: steps.labels.outputs.noop != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install ClawHub CLI
+        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+        run: npm i -g clawhub
+
+      - name: Extract changelog from PR
+        if: steps.labels.outputs.noop != 'true'
+        id: changelog
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # If the PR body contains a "## Changelog" section, use everything
+          # from that heading up to the next ## heading (or EOF). Otherwise
+          # fall back to the PR title.
+          changelog=""
+          if [ -n "$PR_BODY" ]; then
+            changelog=$(printf '%s' "$PR_BODY" | awk '
+              /^## [Cc]hangelog$/ { capture=1; next }
+              capture && /^## / { exit }
+              capture { print }
+            ' | sed -e 's/[[:space:]]*$//' | awk 'NF{found=1} found' )
+          fi
+          if [ -z "$changelog" ]; then
+            changelog="$PR_TITLE"
+          fi
+          # Single-line for CLI; preserve newlines via %0A for outputs.
+          {
+            echo "changelog<<__EOF__"
+            echo "$changelog"
+            echo "__EOF__"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Bump versions (working dir only)
+        if: steps.labels.outputs.noop != 'true'
+        id: bump
+        env:
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          BUMP: ${{ steps.labels.outputs.bump }}
+        run: |
+          set -e
+          declare -A NEW
+          for s in $SKILLS; do
+            v=$(node scripts/bump-skill-version.mjs "$s" "$BUMP" | tail -n1)
+            NEW[$s]=$v
+            echo "Bumped $s -> $v"
+          done
+
+          # Emit a JSON map for later steps.
+          json="{"
+          first=1
+          for s in $SKILLS; do
+            if [ $first -eq 0 ]; then json+=","; fi
+            json+="\"$s\":\"${NEW[$s]}\""
+            first=0
+          done
+          json+="}"
+          echo "versions=$json" >> "$GITHUB_OUTPUT"
+
+      - name: Authenticate to ClawHub
+        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          if [ -z "$CLAWHUB_TOKEN" ]; then
+            echo "::error::CLAWHUB_TOKEN secret is not set."
+            exit 1
+          fi
+          clawhub login --token "$CLAWHUB_TOKEN"
+          clawhub whoami
+
+      - name: Dry-run validate bundles
+        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+        env:
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+        run: |
+          set -e
+          # The skill publish CLI does not have a --dry-run flag, so this is
+          # a structural sanity check: the new version is present in SKILL.md
+          # (top + metadata) and the bundle directory is non-empty.
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            echo "::group::Sanity check $s@$v"
+            grep -E "^version: $v$" "./$s/SKILL.md" || { echo "::error::$s/SKILL.md top-level version != $v"; exit 1; }
+            grep -E "\"version\"\s*:\s*\"$v\"" "./$s/SKILL.md" || { echo "::error::$s/SKILL.md metadata.version != $v"; exit 1; }
+            jq -e --arg v "$v" '.version == $v' "./$s/.github/plugin/plugin.json" >/dev/null || { echo "::error::$s plugin.json version != $v"; exit 1; }
+            jq -e --arg s "$s" --arg v "$v" '.plugins[] | select(.name == $s) | .version == $v' .github/plugin/marketplace.json >/dev/null || { echo "::error::marketplace.json $s version != $v"; exit 1; }
+            test -s "./$s/SKILL.md"
+            test -f "./$s/.clawhubignore"
+            echo "::endgroup::"
+          done
+
+      - name: Commit version bumps
+        if: steps.labels.outputs.noop != 'true'
+        env:
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          msg="chore(release): version bump from PR #$PR_NUMBER"
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            msg+=$'\n'"- $s@$v"
+          done
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "$msg"
+          git push origin main
+
+      - name: Real publish to ClawHub
+        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+        env:
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+        run: |
+          set -e
+          declare -A NOTES
+          NOTES[n8n-create-nodes]="Teaches scaffolding of npm-published n8n community nodes. Generated code requires user-provided npm credentials at publish time. No credentials stored or transmitted by the skill itself."
+          NOTES[power-platform-custom-connector]="Teaches authoring of Power Platform custom connectors. OAuth client IDs/secrets in examples are placeholders. Certification submission uses standard pac connector flows against user-authenticated PAC CLI sessions."
+          NOTES[dataverse-classic-workflow]="Edits Dataverse Classic Workflow XAML and uses Microsoft's documented Process Template clone workaround for the legacy designer's Activate bug. All Dataverse operations go through user-authenticated pac CLI; no credentials read or stored."
+
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            note="${NOTES[$s]:-Released via PR-label automation. See changelog for details.}"
+            echo "::group::Publish $s@$v"
+            clawhub skill publish "./$s" \
+              --version "$v" \
+              --tags latest \
+              --changelog "$CHANGELOG" \
+              --clawscan-note "$note"
+            echo "::endgroup::"
+          done
+
+      - name: Create per-skill tags and GitHub Releases
+        if: steps.labels.outputs.noop != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+          CHANGELOG: ${{ steps.changelog.outputs.changelog }}
+          SKIP_CLAWHUB: ${{ steps.labels.outputs.skip_clawhub }}
+        run: |
+          set -e
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            tag="${s}-v${v}"
+            body="$CHANGELOG"
+            if [ "$SKIP_CLAWHUB" != "true" ]; then
+              body+=$'\n\n'"ClawHub: https://clawhub.ai/skills/$s"
+            fi
+            gh release create "$tag" \
+              --title "$tag" \
+              --notes "$body" \
+              --target main
+          done
+
+      - name: Comment on PR
+        if: steps.labels.outputs.noop != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SKILLS: ${{ steps.labels.outputs.skills }}
+          VERSIONS: ${{ steps.bump.outputs.versions }}
+          SKIP_CLAWHUB: ${{ steps.labels.outputs.skip_clawhub }}
+        run: |
+          set -e
+          body="### :rocket: Released"$'\n\n'
+          for s in $SKILLS; do
+            v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
+            body+="- \`$s@$v\` — tag [\`${s}-v${v}\`](https://github.com/${{ github.repository }}/releases/tag/${s}-v${v})"
+            if [ "$SKIP_CLAWHUB" != "true" ]; then
+              body+=" · [ClawHub](https://clawhub.ai/skills/$s)"
+            fi
+            body+=$'\n'
+          done
+          gh pr comment "$PR_NUMBER" --body "$body"
