@@ -131,5 +131,54 @@ to standalone skills (which would also require new entries in
    `SKILL.md` presence — no edits needed there.
 6. Add a `claude install-github-skill ...` line to the README's Claude Code
    section so Claude users get a copy-paste install command.
-7. Add the skill to `.github/workflows/clawhub-publish.yml`'s skill list so
-   it ships to ClawHub on the next manual workflow run.
+7. Add the skill to `.github/workflows/clawhub-publish.yml`'s skill list
+   (both the `skills` input `choice:` enum AND the publish step's iteration)
+   so it ships to ClawHub on the next manual workflow run.
+
+## Publishing to ClawHub (release procedure)
+
+Use this checklist for every ClawHub release — initial publish or version
+bump. The workflow lives at `.github/workflows/clawhub-publish.yml` and is
+**manual-trigger only** (`workflow_dispatch`).
+
+1. **Bump versions in the SKILL.md** you're shipping:
+   - Top-level `version: X.Y.Z`
+   - `metadata.version` inside the single-line JSON
+   Both MUST match the `version` workflow input. Mismatched versions cause
+   the ClawHub publish CLI to reject the bundle.
+2. **Commit and push to `main`.** The workflow checks out `main` (or the
+   ref you select in the Run workflow dialog).
+3. **Dry-run first.** GitHub UI → Actions → "Publish to ClawHub" → Run
+   workflow:
+   - `version`: `X.Y.Z`
+   - `skills`: `all` or a specific slug
+   - `changelog`: short description
+   - `dry_run`: **true**
+   The dry-run skips auth and prints what would be published. Confirm
+   the green check before continuing.
+4. **Real publish.** Re-run the workflow with the same inputs except
+   `dry_run`: **false**. The workflow uses the `CLAWHUB_TOKEN` repo
+   secret to authenticate and publishes via
+   `clawhub skill publish <path> --version <X.Y.Z> --tags latest --changelog "..." --clawscan-note "..."`.
+5. **Verify** by visiting `https://clawhub.ai/skills/<slug>` for each
+   published skill. The workflow log also prints the new skill ID per
+   slug under `✓ OK. Published <slug>@<version> (<id>)`.
+
+### Operational gotchas
+
+- **CLI flag drift.** ClawHub CLI flags have changed between versions
+  (e.g. `--version` → `--cli-version` in v0.15). Always read the failing
+  job log before assuming the workflow is broken — fix the flag and
+  re-dry-run. The workflow includes diagnostic steps (`clawhub --help`,
+  `clawhub skill publish --help`) that print the live flag surface.
+- **Local `clawhub inspect` on Windows can hang** if `NODE_OPTIONS`
+  inherits debugger flags from the VS Code session. The GitHub Actions
+  log is the authoritative source of publish success — local inspection
+  is optional. To work around locally, open a fresh terminal and run
+  `$env:NODE_OPTIONS=''; clawhub inspect <slug> --version <X.Y.Z>`.
+- **Republishing the same version is rejected** by ClawHub. To retry a
+  failed real-publish, bump the patch version and try again.
+- **ClawScan notes** (`--clawscan-note`) are pre-written per skill in
+  the workflow's associative array. Update them when adding a skill
+  that has unusual provider CLIs, OAuth flows, or certificate
+  submission patterns so the audit pipeline doesn't false-positive.
