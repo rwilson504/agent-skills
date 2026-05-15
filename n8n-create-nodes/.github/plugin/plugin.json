@@ -1,7 +1,7 @@
 {
   "name": "n8n-create-nodes",
   "description": "Build production-ready n8n community nodes as npm packages. Covers declarative (REST API wrapping) and programmatic (custom logic) node styles, credential types, webhook/poll triggers, versioned nodes, and publishing to the n8n community. Use for any n8n node package development.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "rwilson504",
     "url": "https://github.com/rwilson504"
@@ -24,5 +24,7 @@
     "npm-package",
     "workflow-sdk"
   ],
-  "skills": ["./"]
+  "skills": [
+    "./"
+  ]
 }

@@ -2,8 +2,8 @@
 name: power-platform-custom-connector
 description: Build Power Platform custom connectors (Independent Publisher and Verified Publisher) for Microsoft certification. Use when user says "create a custom connector", "build a Power Automate connector", "write apiDefinition.swagger.json", "configure apiProperties.json", "add x-ms-* extensions", "set up OAuth for a connector", "write script.csx custom code",  "create a webhook trigger connector", "prepare connector for certification PR", "add dynamic dropdowns", "configure policy templates", or "submit connector to PowerPlatformConnectors repo". Capabilities; Swagger 2.0 OpenAPI definitions, 5 auth types, 13 policy templates, C# custom code,webhook triggers, dynamic values, Copilot Studio AI extensions, certification checklists, pac connector CLI. Do NOT use for generic REST API design, Azure API Management policies, or Logic Apps built-in connectors.
 license: MIT-0
-version: 1.0.0
-metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["power-platform", "custom-connector", "swagger", "openapi", "power-automate", "power-apps"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/power-platform-custom-connector", "emoji": "🔌" } }
+version: 1.0.1
+metadata: { "author": "rwilson504", "version": "1.0.1", "category": "development", "tags": ["power-platform", "custom-connector", "swagger", "openapi", "power-automate", "power-apps"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/power-platform-custom-connector", "emoji": "🔌" } }
 ---
 
 # Power Platform Custom Connector Creation

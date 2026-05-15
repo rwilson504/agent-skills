@@ -1,7 +1,7 @@
 {
   "name": "dataverse-classic-workflow",
   "description": "Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Bundles a top-level orchestrator plus 7 sub-skills (read, analyze, compare, copy, write, write-custom-activity, publish) and a shared knowledge base (XAML anatomy, activity catalog, VB expressions, trigger types, PAC CLI flow).",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "rwilson504",
     "url": "https://github.com/rwilson504"

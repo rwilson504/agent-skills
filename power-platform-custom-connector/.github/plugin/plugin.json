@@ -1,7 +1,7 @@
 {
   "name": "power-platform-custom-connector",
   "description": "Build Power Platform custom connectors (Independent Publisher and Verified Publisher) ready for Microsoft certification. Covers Swagger 2.0 / OpenAPI definitions, all 5 authentication types, the 13 policy templates, C# custom code (script.csx), webhook triggers, dynamic values/lists, Copilot Studio AI extensions, and the full certification submission workflow.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "rwilson504",
     "url": "https://github.com/rwilson504"
@@ -27,5 +27,7 @@
     "power-automate",
     "power-apps"
   ],
-  "skills": ["./"]
+  "skills": [
+    "./"
+  ]
 }
