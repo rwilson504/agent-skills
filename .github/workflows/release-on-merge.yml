@@ -160,28 +160,17 @@ jobs:
           json+="}"
           echo "versions=$json" >> "$GITHUB_OUTPUT"
 
-      - name: Authenticate to ClawHub
-        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
-        env:
-          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
-        run: |
-          if [ -z "$CLAWHUB_TOKEN" ]; then
-            echo "::error::CLAWHUB_TOKEN secret is not set."
-            exit 1
-          fi
-          clawhub login --token "$CLAWHUB_TOKEN"
-          clawhub whoami
-
-      - name: Dry-run validate bundles
-        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+      - name: Validate bumped bundles
+        if: steps.labels.outputs.noop != 'true'
         env:
           SKILLS: ${{ steps.labels.outputs.skills }}
           VERSIONS: ${{ steps.bump.outputs.versions }}
         run: |
           set -e
-          # The skill publish CLI does not have a --dry-run flag, so this is
-          # a structural sanity check: the new version is present in SKILL.md
-          # (top + metadata) and the bundle directory is non-empty.
+          # Structural sanity check (auth-free, runs before ClawHub login):
+          # confirms the new version is present in SKILL.md (top + metadata),
+          # plugin.json, and marketplace.json, and that the bundle is non-empty.
+          # Failing here means we never burn an auth call or commit bad bumps.
           for s in $SKILLS; do
             v=$(echo "$VERSIONS" | jq -r --arg k "$s" '.[$k]')
             echo "::group::Sanity check $s@$v"
@@ -193,6 +182,18 @@ jobs:
             test -f "./$s/.clawhubignore"
             echo "::endgroup::"
           done
+
+      - name: Authenticate to ClawHub
+        if: steps.labels.outputs.noop != 'true' && steps.labels.outputs.skip_clawhub != 'true'
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          if [ -z "$CLAWHUB_TOKEN" ]; then
+            echo "::error::CLAWHUB_TOKEN secret is not set."
+            exit 1
+          fi
+          clawhub login --token "$CLAWHUB_TOKEN"
+          clawhub whoami
 
       - name: Commit version bumps
         if: steps.labels.outputs.noop != 'true'
