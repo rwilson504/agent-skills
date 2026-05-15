@@ -127,6 +127,55 @@ claude install-github-skill rwilson504/agent-skills/dataverse-classic-workflow
 
 After installation, the skill's instructions are automatically available in your Claude Code sessions.
 
+#### ClawHub (OpenClaw registry)
+
+Each skill is published to the [ClawHub](https://clawhub.ai) registry under the [MIT-0](https://opensource.org/license/0bsd) license (no attribution required). If you already use OpenClaw, this is the lowest-friction install path:
+
+```bash
+# One-time: install the OpenClaw CLI
+# (see https://docs.openclaw.ai/clawhub/quickstart)
+
+# Install any of the skills directly from ClawHub
+openclaw skills install power-platform-custom-connector
+openclaw skills install n8n-create-nodes
+openclaw skills install dataverse-classic-workflow
+
+# Update installed skills later
+openclaw skills update --all
+```
+
+Inspect a skill before installing (recommended for any registry-installed content):
+
+```bash
+clawhub inspect power-platform-custom-connector
+```
+
+#### OpenClaw (manual file copy)
+
+If you don't want to use ClawHub, OpenClaw also consumes [AgentSkills](https://agentskills.io/)-compatible skill folders, which is the same format used here — no conversion needed. Drop a skill folder into any of OpenClaw's [skill roots](https://docs.openclaw.ai/tools/skills) (highest precedence first):
+
+| Scope | Path |
+|-------|------|
+| Workspace | `<workspace>/skills/<skill-name>/` |
+| Project agent | `<workspace>/.agents/skills/<skill-name>/` |
+| Personal (all agents) | `~/.agents/skills/<skill-name>/` |
+| Managed/local | `~/.openclaw/skills/<skill-name>/` |
+
+Quick install via sparse clone (personal scope shown — swap the destination for any of the rows above):
+
+```bash
+# Clone just the skill folder you want
+git clone --depth 1 --filter=blob:none --sparse https://github.com/rwilson504/agent-skills.git /tmp/agent-skills
+cd /tmp/agent-skills
+git sparse-checkout set power-platform-custom-connector
+mkdir -p ~/.agents/skills
+cp -r power-platform-custom-connector ~/.agents/skills/
+```
+
+Or grab a pre-built zip from the [latest release](https://github.com/rwilson504/agent-skills/releases/latest) and extract it into the same destination. OpenClaw's skill watcher (`skills.load.watch: true`) will pick it up on the next session — no restart required.
+
+> **Frontmatter compatibility:** The `metadata:` line in our `SKILL.md` files is a single-line JSON object — exactly the shape OpenClaw's parser expects. The `metadata.openclaw.homepage` and `metadata.openclaw.emoji` fields show up in the OpenClaw Skills UI. To add OpenClaw-specific gating (`metadata.openclaw.requires.bins`, `requires.env`, `os`, etc.), edit the `metadata` JSON block in your local copy.
+
 #### VS Code / GitHub Copilot Chat
 
 1. Download the skill zip from the [latest release](https://github.com/rwilson504/agent-skills/releases/latest)
@@ -174,11 +223,15 @@ Or download individual skill packages from the [latest release](https://github.c
 ```
 agent-skills/
 ├── .github/
+│   ├── instructions/
+│   │   └── skill-frontmatter.instructions.md   # Frontmatter convention applyTo: '**/SKILL.md'
 │   ├── plugin/
 │   │   └── marketplace.json             # Copilot CLI marketplace registry (lists all plugins)
 │   └── workflows/
-│       └── release.yml                  # CI: build + publish releases
+│       ├── release.yml                  # CI: build + publish zip releases on v* tags
+│       └── clawhub-publish.yml          # CI: publish skills to ClawHub on workflow_dispatch
 ├── n8n-create-nodes/                    # n8n node development skill
+│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
 │   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
 │   ├── SKILL.md                         # Main skill instructions
 │   ├── references/                      # Detailed reference docs (loaded on demand)
@@ -188,6 +241,7 @@ agent-skills/
 │   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
 ├── power-platform-custom-connector/     # Power Platform connector skill
+│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
 │   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
 │   ├── SKILL.md                         # Main skill instructions
 │   ├── references/                      # Detailed reference docs (loaded on demand)
@@ -201,6 +255,7 @@ agent-skills/
 │   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
 ├── dataverse-classic-workflow/          # Dataverse Classic Workflow (WF4/XAML) skill bundle
+│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
 │   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
 │   ├── SKILL.md                         # Top-level orchestrator + routing table to sub-skills
 │   ├── reference/                       # Shared knowledge base (cited by every sub-skill)
@@ -247,15 +302,21 @@ agent-skills/
 
 ## 📦 Distribution
 
-Skills can be consumed three ways — pick whichever fits your tooling:
+Skills can be consumed four ways — pick whichever fits your tooling:
 
 ### 1. GitHub Copilot CLI Marketplace
 
 The repo itself is a Copilot CLI plugin marketplace (see [.github/plugin/marketplace.json](.github/plugin/marketplace.json)). Add it once and install any of the skills as plugins — see [Installation](#installation) above.
 
-### 2. Pre-built Zip Releases
+### 2. ClawHub Registry
 
-Pre-built zip packages are published on the [Releases](https://github.com/rwilson504/agent-skills/releases) page for agents that don't speak the Copilot CLI plugin protocol (Cursor, Windsurf, manual installs, air-gapped environments, etc.).
+Each skill is published to [ClawHub](https://clawhub.ai), the OpenClaw registry. ClawHub auto-licenses everything as [MIT-0](https://opensource.org/license/0bsd) and runs every release through ClawScan + VirusTotal audits. Installation is one command per skill via the OpenClaw CLI — see [Installation](#installation) above.
+
+The publish pipeline lives in [.github/workflows/clawhub-publish.yml](.github/workflows/clawhub-publish.yml) and is triggered manually (`workflow_dispatch`) so we can dry-run, attach changelogs, and review ClawScan results before each push.
+
+### 3. Pre-built Zip Releases
+
+Pre-built zip packages are published on the [Releases](https://github.com/rwilson504/agent-skills/releases) page for agents that don't speak the Copilot CLI plugin protocol or use the ClawHub registry (Cursor, Windsurf, manual installs, air-gapped environments, etc.).
 
 Each release includes:
 - **agent-skills-v\<version\>.zip** — Complete bundle with all skills
@@ -263,7 +324,7 @@ Each release includes:
 - **power-platform-custom-connector-v\<version\>.zip** — Power Platform skill only
 - **dataverse-classic-workflow-v\<version\>.zip** — Dataverse Classic Workflow skill only
 
-### Building Locally
+### 4. Building Locally
 
 ```bash
 # Bash (Linux / macOS / CI)

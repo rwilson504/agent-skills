@@ -28,13 +28,6 @@
     "xaml"
   ],
   "skills": [
-    "./",
-    "./skills/read-workflow",
-    "./skills/analyze-workflow",
-    "./skills/compare-workflows",
-    "./skills/copy-workflow",
-    "./skills/write-workflow",
-    "./skills/write-custom-activity",
-    "./skills/publish-workflow"
+    "./"
   ]
 }

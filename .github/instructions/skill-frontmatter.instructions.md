@@ -1,0 +1,135 @@
+---
+applyTo: '**/SKILL.md'
+description: Frontmatter convention for SKILL.md files in this repo so they load cleanly across GitHub Copilot CLI, Claude Code, OpenClaw, and ClawHub.
+---
+
+# `SKILL.md` frontmatter convention
+
+Every top-level skill in this repo (`<skill>/SKILL.md`) must use this exact
+frontmatter shape so the same file works across all supported AI agent
+toolchains: GitHub Copilot CLI, Claude Code, AgentSkills-spec consumers,
+OpenClaw, and the ClawHub registry.
+
+## Required shape
+
+```yaml
+---
+name: <skill-folder-name>
+description: <single-line description, used for routing/discovery>
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "...", "version": "...", "category": "...", "tags": ["..."], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/<skill-folder-name>", "emoji": "..." } }
+---
+```
+
+### Rules
+
+1. **`name`, `description`, `license`, `version` MUST stay one-key-per-line.**
+   OpenClaw's embedded parser only supports single-line top-level frontmatter
+   keys. Do not split `description` across multiple lines.
+2. **`metadata` MUST be a single-line JSON object** (valid YAML flow-mapping).
+   OpenClaw documents this as a hard requirement
+   ([docs](https://docs.openclaw.ai/tools/skills) → "SKILL.md format").
+   Multi-line YAML mappings under `metadata:` may be silently dropped by the
+   OpenClaw loader. Other agents (Copilot CLI, Claude Code) accept the
+   single-line JSON form unchanged because it is also valid YAML.
+3. **`name` MUST equal the skill folder name.** The marketplace
+   (`.github/plugin/marketplace.json`), per-skill `plugin.json`, and the
+   ClawHub slug (derived from folder name) all reference it by this name.
+   Folder names must match `^[a-z0-9][a-z0-9-]*$` (ClawHub slug rule).
+4. **`description` is the routing signal.** Front-load discriminative
+   trigger phrases ("Use when user says ..."). Keep it on one physical line.
+   ClawHub uses this verbatim as the skill summary in search results.
+5. **`license: MIT-0`** — ClawHub force-publishes every skill under MIT-0
+   and refuses per-skill license overrides
+   ([skill-format docs](https://docs.openclaw.ai/clawhub/skill-format)).
+   Setting `MIT-0` here keeps non-ClawHub consumers (Copilot CLI, Claude Code,
+   manual installs) consistent with what gets published. The repo-root
+   `LICENSE` file remains the canonical license for the repository itself.
+6. **Top-level `version:`** mirrors `metadata.version` and matches the
+   `--version` flag the ClawHub publish CLI requires. Bump both together
+   on every release.
+7. **Allowed top-level keys are exactly:** `name`, `description`, `license`,
+   `version`, `metadata`. Anything else (e.g. `tags:`, `author:`) belongs
+   inside the `metadata` JSON object so OpenClaw's strict parser is not
+   confronted with unknown top-level keys.
+
+## OpenClaw / ClawHub-specific fields (optional, all under `metadata.openclaw`)
+
+| Field | Purpose |
+|-------|---------|
+| `homepage` | URL surfaced as "Website" in the OpenClaw / ClawHub Skills UI. |
+| `emoji` | Emoji shown in the OpenClaw / ClawHub Skills UI. |
+| `os` | Array of `"darwin" \| "linux" \| "win32"` — restricts where the skill loads. Omit for cross-platform skills. |
+| `requires.bins` | Array of binaries that must all exist on `PATH` for the skill to be eligible. **Use sparingly** — gating a skill out hides its instructions from the agent entirely, and ClawScan flags the skill if declared bins do not match referenced behavior. |
+| `requires.anyBins` | Like `requires.bins` but only one needs to be present. Prefer this over `requires.bins` when alternatives exist (e.g. `npm`/`pnpm`/`yarn`). |
+| `requires.env` | Array of environment variables that must be set for the skill to run. **ClawScan checks declarations match references** — declaring an env var the skill never uses (or vice versa) is a metadata-mismatch signal. |
+| `requires.config` | Array of config file paths the skill reads. |
+| `primaryEnv` | Single env var name used as the API-key handle in `skills.entries.<name>.apiKey`. |
+| `envVars` | Per-variable declarations with `{ name, required, description }`. Use for optional env vars (`required: false`) — `requires.env` means the skill cannot run without them. |
+| `install` | Array of installer hints (`brew`/`node`/`go`/`uv`) shown by the macOS Skills UI. Mostly Mac-centric; skip for cross-platform / Windows-first skills. |
+| `always` | `true` to bypass all gating and always include the skill. |
+| `skillKey` | Override the skill's invocation key (defaults to slug). |
+
+References:
+- OpenClaw skills: <https://docs.openclaw.ai/tools/skills>
+- ClawHub skill format: <https://docs.openclaw.ai/clawhub/skill-format>
+
+## ClawHub publish requirements
+
+Each top-level skill folder MUST also contain:
+
+1. **`<skill>/.clawhubignore`** — exclude `evaluations/`, `.github/`, `dist/`,
+   `*.zip`, `*.tgz`, and editor junk from the publish bundle. ClawHub also
+   honors `.gitignore`. Bundle cap is 50 MB; the embedding pipeline reads
+   `SKILL.md` plus up to ~40 non-`.md` files.
+2. **All files must be text-based.** Allowed extensions are documented at
+   <https://docs.openclaw.ai/clawhub/skill-format>. PowerShell `.ps1` /
+   `.psm1` / `.psd1` are accepted.
+
+ClawHub's audit pipeline (ClawScan + VirusTotal) checks for:
+- Coherence between declared metadata and skill body content
+- Undeclared env var or binary references
+- Obfuscated install commands or hidden execution
+- Acceptable-usage compliance (no security bypass, scraping at scale, etc.)
+
+When publishing, attach a `--clawscan-note` explaining any pattern that may
+look unusual at first glance (provider-specific CLIs, OAuth flows, certificate
+submission, etc.). The note is stored on the published version and helps reduce
+false positives without being treated as trusted proof.
+
+## Sub-skill files
+
+Files at `<skill>/skills/<sub-skill>/SKILL.md` (e.g. inside
+`dataverse-classic-workflow/`) intentionally do NOT have frontmatter — they
+are read as content from inside the parent skill, not loaded as standalone
+skills. Do not add `name`/`description` to those files unless promoting them
+to standalone skills (which would also require new entries in
+`marketplace.json`, the parent `plugin.json`, and ClawHub if published).
+
+## When updating frontmatter
+
+- Run a quick visual check that the JSON object on the `metadata:` line has
+  balanced braces and is on exactly one physical line.
+- Do not break the line for readability — single-line is the spec.
+- If you add a new field to `metadata.openclaw`, update this instruction
+  file's table above so the convention stays discoverable.
+- Bump both top-level `version:` AND `metadata.version` together on every
+  release. Mismatched versions confuse the ClawHub publish CLI.
+
+## When adding a new skill
+
+1. Create `<new-skill>/SKILL.md` following the template above (substitute
+   `<skill-folder-name>` everywhere). Folder name must match the ClawHub
+   slug regex `^[a-z0-9][a-z0-9-]*$`.
+2. Create `<new-skill>/.clawhubignore` (copy from an existing skill).
+3. Create `<new-skill>/.github/plugin/plugin.json` for GitHub Copilot CLI
+   (mirror an existing one).
+4. Add an entry to `.github/plugin/marketplace.json` for Copilot CLI
+   marketplace discovery.
+5. The build scripts (`build.ps1`, `build.sh`) auto-discover the folder by
+   `SKILL.md` presence — no edits needed there.
+6. Add a `claude install-github-skill ...` line to the README's Claude Code
+   section so Claude users get a copy-paste install command.
+7. Add the skill to `.github/workflows/clawhub-publish.yml`'s skill list so
+   it ships to ClawHub on the next manual workflow run.
