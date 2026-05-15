@@ -52,7 +52,10 @@ jobs:
         run: npm i -g clawhub
 
       - name: Verify CLI install
-        run: clawhub --version
+        run: |
+          clawhub --cli-version
+          echo "---"
+          clawhub --help | head -40
 
       - name: Authenticate (skipped in dry-run)
         if: ${{ inputs.dry_run == false }}
@@ -63,6 +66,10 @@ jobs:
             echo "::error::CLAWHUB_TOKEN secret is not set. Add it under Settings → Secrets and variables → Actions."
             exit 1
           fi
+          # Show login flags to surface any CLI-version drift in logs.
+          clawhub login --help || true
+          # The CLI auto-reads the CLAWHUB_TOKEN env var; the explicit --token
+          # flag is also supported.
           clawhub login --token "$CLAWHUB_TOKEN"
           clawhub whoami
 
@@ -74,6 +81,12 @@ jobs:
           else
             echo "skills=${{ inputs.skills }}" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Show skill publish help
+        run: |
+          clawhub skill --help || true
+          echo "---"
+          clawhub skill publish --help || true
 
       - name: Publish skills
         env:
