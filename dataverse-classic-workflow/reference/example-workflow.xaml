@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-16"?>
+<!--
+============================================================
+  ANONYMIZED EXAMPLE — for teaching purposes only.
+
+  This is a synthetic, deliberately simplified Classic Workflow XAML
+  demonstrating the structural patterns the skills reference. It uses the
+  OOB Dataverse `account` and `task` entities.
+
+  DO NOT IMPORT this directly — version numbers and PublicKeyToken values
+  in `AssemblyQualifiedName` strings have been replaced with placeholders
+  (`X.X.X.X`, `xxxxxxxxxxxxxxxx`). To produce a real importable workflow,
+  copy values from a known-good workflow exported from your environment.
+
+  Scenario (illustrative):
+    Trigger:        On update of account.creditlimit
+    If new credit limit > 100000:
+      - Create a follow-up task assigned to the account owner
+      - Send an email summarizing the change
+    Else:
+      - Stop workflow as Succeeded with no further action
+
+  Mode:    Background
+  Scope:   Organization
+  Run as:  Calling User
+============================================================
+-->
+<mxswa:Activity
+    x:Class="ContosoExamplePublisher.SampleAccountReviewWorkflow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:mxs="http://schemas.microsoft.com/2014/xrm/activities"
+    xmlns:mxswa="http://schemas.microsoft.com/2014/xrm/activities"
+    xmlns:s="clr-namespace:System;assembly=mscorlib"
+    xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+    xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <mxswa:Workflow
+      Trigger="OnUpdate"
+      Scope="Organization"
+      RunAs="CallingUser"
+      PrimaryEntity="account"
+      Mode="Background">
+
+    <Sequence DisplayName="Root">
+
+      <!-- ========================================================== -->
+      <!-- Step 1: Check Condition — credit limit > 100000?           -->
+      <!-- Wrapped in ActivityReference because ConditionSequence is  -->
+      <!-- an internal CRM activity, NOT a direct XAML element.       -->
+      <!-- ========================================================== -->
+      <mxswa:ActivityReference
+          AssemblyQualifiedName="Microsoft.Crm.Workflow.Activities.ConditionSequence, Microsoft.Crm.Workflow, Version=X.X.X.X, Culture=neutral, PublicKeyToken=xxxxxxxxxxxxxxxx"
+          DisplayName="Check: credit limit over 100k">
+        <mxswa:ActivityReference.Properties>
+
+          <!-- Branch A: condition matched (True) -->
+          <InArgument x:Key="Branches" x:TypeArguments="scg:IList(s:Object)">
+            <mxswa:ActivityReference
+                AssemblyQualifiedName="Microsoft.Crm.Workflow.Activities.ConditionBranch, Microsoft.Crm.Workflow, Version=X.X.X.X, Culture=neutral, PublicKeyToken=xxxxxxxxxxxxxxxx"
+                DisplayName="If True">
+              <mxswa:ActivityReference.Properties>
+
+                <!-- The condition itself: account.creditlimit > 100000 -->
+                <InArgument x:Key="Condition" x:TypeArguments="x:Object">
+                  <mxswa:ActivityReference
+                      AssemblyQualifiedName="Microsoft.Crm.Workflow.Activities.EvaluateCondition, Microsoft.Crm.Workflow, Version=X.X.X.X, Culture=neutral, PublicKeyToken=xxxxxxxxxxxxxxxx">
+                    <mxswa:ActivityReference.Properties>
+                      <InArgument x:Key="LeftOperand" x:TypeArguments="x:Object">
+                        [GetVariableValue(EntityProperty(&quot;creditlimit&quot;, &quot;account&quot;), 0D)]
+                      </InArgument>
+                      <InArgument x:Key="Operator" x:TypeArguments="x:String">
+                        <Literal>GreaterThan</Literal>
+                      </InArgument>
+                      <InArgument x:Key="RightOperand" x:TypeArguments="x:Object">
+                        [100000D]
+                      </InArgument>
+                    </mxswa:ActivityReference.Properties>
+                  </mxswa:ActivityReference>
+                </InArgument>
+
+                <!-- The body of the True branch -->
+                <InArgument x:Key="Body" x:TypeArguments="x:Object">
+                  <Sequence DisplayName="True branch body">
+
+                    <!-- Step 1.1: Create a follow-up task -->
+                    <mxswa:SetEntityProperty
+                        DisplayName="Set task subject"
+                        Attribute="subject"
+                        EntityName="task"
+                        Value="[&quot;Review credit limit increase for &quot; &amp; GetVariableValue(EntityProperty(&quot;name&quot;, &quot;account&quot;), &quot;&quot;)]" />
+
+                    <mxswa:SetEntityProperty
+                        DisplayName="Set task regardingobjectid"
+                        Attribute="regardingobjectid"
+                        EntityName="task"
+                        Value="[GetVariableValue(EntityProperty(&quot;accountid&quot;, &quot;account&quot;), Nothing)]" />
+
+                    <mxswa:CreateEntity
+                        DisplayName="Create follow-up task"
+                        EntityName="task" />
+
+                    <!-- Step 1.2: Send an email summarizing the change -->
+                    <mxswa:SetEntityProperty
+                        DisplayName="Set email subject"
+                        Attribute="subject"
+                        EntityName="email"
+                        Value="[&quot;Credit limit increased for &quot; &amp; GetVariableValue(EntityProperty(&quot;name&quot;, &quot;account&quot;), &quot;&quot;)]" />
+
+                    <mxswa:SetEntityProperty
+                        DisplayName="Set email body"
+                        Attribute="description"
+                        EntityName="email"
+                        Value="[&quot;The credit limit for account '&quot; &amp; GetVariableValue(EntityProperty(&quot;name&quot;, &quot;account&quot;), &quot;&quot;) &amp; &quot;' has been changed to &quot; &amp; GetVariableValue(EntityProperty(&quot;creditlimit&quot;, &quot;account&quot;), 0D).ToString() &amp; &quot;. Please review.&quot;]" />
+
+                    <mxswa:CreateEntity
+                        DisplayName="Create email record"
+                        EntityName="email" />
+
+                    <mxswa:SendEmail
+                        DisplayName="Send the email" />
+
+                  </Sequence>
+                </InArgument>
+
+              </mxswa:ActivityReference.Properties>
+            </mxswa:ActivityReference>
+
+            <!-- Branch B: Else (no condition; runs if no earlier branch matched) -->
+            <mxswa:ActivityReference
+                AssemblyQualifiedName="Microsoft.Crm.Workflow.Activities.ConditionBranch, Microsoft.Crm.Workflow, Version=X.X.X.X, Culture=neutral, PublicKeyToken=xxxxxxxxxxxxxxxx"
+                DisplayName="Else">
+              <mxswa:ActivityReference.Properties>
+                <InArgument x:Key="Body" x:TypeArguments="x:Object">
+                  <Sequence DisplayName="Else branch body">
+
+                    <!-- Step 2: Stop workflow with success (no action needed) -->
+                    <mxswa:ActivityReference
+                        AssemblyQualifiedName="Microsoft.Crm.Workflow.Activities.TerminateWorkflow, Microsoft.Crm.Workflow, Version=X.X.X.X, Culture=neutral, PublicKeyToken=xxxxxxxxxxxxxxxx"
+                        DisplayName="Stop — no action needed">
+                      <mxswa:ActivityReference.Properties>
+                        <InArgument x:Key="Status" x:TypeArguments="x:String">
+                          <Literal>Succeeded</Literal>
+                        </InArgument>
+                        <InArgument x:Key="StatusMessage" x:TypeArguments="x:String">
+                          [&quot;Credit limit change below threshold; no action taken.&quot;]
+                        </InArgument>
+                      </mxswa:ActivityReference.Properties>
+                    </mxswa:ActivityReference>
+
+                  </Sequence>
+                </InArgument>
+              </mxswa:ActivityReference.Properties>
+            </mxswa:ActivityReference>
+
+          </InArgument>
+
+        </mxswa:ActivityReference.Properties>
+      </mxswa:ActivityReference>
+
+    </Sequence>
+
+  </mxswa:Workflow>
+
+</mxswa:Activity>

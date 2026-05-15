@@ -1,6 +1,6 @@
 # Agent Skills Repository
 
-A collection of specialized skills and tools for building and deploying integrations across various platforms. This repository serves as a central hub for agent-focused development skills, currently featuring Power Platform custom connectors and n8n community nodes.
+A collection of specialized skills and tools for building and deploying integrations across various platforms. This repository serves as a central hub for agent-focused development skills, currently featuring Power Platform custom connectors, n8n community nodes, and Dataverse Classic Workflow tooling.
 
 ## 🎯 Overview
 
@@ -8,6 +8,7 @@ This repository contains expertise and resources for:
 
 - **Power Platform Custom Connectors**: Skills for creating independent publisher and verified publisher connectors
 - **n8n Node Development**: Skills for creating new n8n community nodes
+- **Dataverse Classic Workflow**: Read, analyze, compare, edit, copy, and publish WF4/XAML classic workflows + scaffold custom workflow activities
 
 These skills are designed to help AI agents and developers build, test, and deploy integrations more efficiently.
 
@@ -46,6 +47,26 @@ The n8n node development skills facilitate the creation of custom nodes for the 
 - Creating specialized automation nodes
 - Contributing to the n8n open-source ecosystem
 
+### Dataverse Classic Workflow
+
+The Dataverse Classic Workflow skill covers WF4/XAML-based classic workflows (the `workflow` table, category=0) — **not** Power Automate cloud flows. It bundles 7 sub-skills behind a single top-level `SKILL.md` orchestrator and a shared knowledge base.
+
+**Key Capabilities:**
+- Parse and summarize a workflow XAML file (trigger, scope, mode, step-by-step narrative)
+- Gap-analyze an existing workflow against new requirements
+- Diff two workflow XAML versions structurally
+- Round-trip-safe XAML edits that preserve `UserData`, `mva:VisualBasicValue`, and namespace prefix mappings
+- Clone a workflow via the Process Template path (with the gotchas the platform doesn't tell you about)
+- Scaffold custom workflow activities — `CodeActivity`-derived C# classes targeting .NET Framework 4.6.2, with `[Input]` / `[Output]` / `[RequiredArgument]` / `[Default]` / `[ReferenceTarget]` / `[AttributeTarget]` parameter attributes and `spkl`'s `[CrmPluginRegistration]` registration
+- Publish via Power Platform CLI (`pac solution pack` / `import` + activation)
+
+**Use Cases:**
+- Working with classic workflows extracted from a Dataverse solution (`pac solution clone` / `unpack`)
+- Modernizing legacy CRM/Dynamics 365 workflows
+- Authoring new C# workflow activity assemblies that XAML can call via `mxswa:ActivityReference`
+- Cross-environment promotion (DEV → TEST → PROD) of workflow solutions
+- Air-gapped environments (Online, on-premises, GCC, GCC-High, DoD) — no live env required for read/analyze/compare/edit
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -64,9 +85,34 @@ Depending on which skill you're working with:
 - Basic TypeScript knowledge
 - n8n instance for testing
 
+**For Dataverse Classic Workflow:**
+- Workflow XAML files extracted from a Dataverse solution (typically via `pac solution clone` or `pac solution unpack`)
+- Power Platform CLI (`pac`) — required only for the `publish-workflow` sub-skill
+- For custom workflow activities: .NET Framework 4.6.2 SDK + `Microsoft.CrmSdk.Workflow` NuGet package
+
 ### Installation
 
 Choose the method that matches your AI coding agent:
+
+#### GitHub Copilot CLI (Plugin Marketplace) — Recommended
+
+This repository ships a [GitHub Copilot CLI plugin marketplace](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace) at [.github/plugin/marketplace.json](.github/plugin/marketplace.json). Each skill is published as an individually installable plugin.
+
+```bash
+# 1. Add this repository as a marketplace
+copilot plugin marketplace add rwilson504/agent-skills
+
+# 2. Install one or more plugins from the marketplace
+copilot plugin install power-platform-custom-connector@agent-skills
+copilot plugin install n8n-create-nodes@agent-skills
+copilot plugin install dataverse-classic-workflow@agent-skills
+
+# 3. (Optional) List what's installed and check for updates
+copilot plugin list
+copilot plugin marketplace update agent-skills
+```
+
+Once installed, the skills are auto-loaded into every Copilot CLI session — no per-project configuration required.
 
 #### Claude Code
 
@@ -76,6 +122,7 @@ Install skills directly from GitHub using the Claude Code CLI:
 # Install a specific skill
 claude install-github-skill rwilson504/agent-skills/power-platform-custom-connector
 claude install-github-skill rwilson504/agent-skills/n8n-create-nodes
+claude install-github-skill rwilson504/agent-skills/dataverse-classic-workflow
 ```
 
 After installation, the skill's instructions are automatically available in your Claude Code sessions.
@@ -126,7 +173,13 @@ Or download individual skill packages from the [latest release](https://github.c
 
 ```
 agent-skills/
+├── .github/
+│   ├── plugin/
+│   │   └── marketplace.json             # Copilot CLI marketplace registry (lists all plugins)
+│   └── workflows/
+│       └── release.yml                  # CI: build + publish releases
 ├── n8n-create-nodes/                    # n8n node development skill
+│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
 │   ├── SKILL.md                         # Main skill instructions
 │   ├── references/                      # Detailed reference docs (loaded on demand)
 │   │   ├── CREDENTIAL_PATTERNS.md       # Credential implementation patterns
@@ -135,6 +188,7 @@ agent-skills/
 │   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
 ├── power-platform-custom-connector/     # Power Platform connector skill
+│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
 │   ├── SKILL.md                         # Main skill instructions
 │   ├── references/                      # Detailed reference docs (loaded on demand)
 │   │   ├── AUTH_PATTERNS.md             # Authentication patterns
@@ -146,9 +200,28 @@ agent-skills/
 │   │   ├── EXAMPLES.md                  # Full examples
 │   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
 │   └── evaluations/                     # Test scenarios
+├── dataverse-classic-workflow/          # Dataverse Classic Workflow (WF4/XAML) skill bundle
+│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
+│   ├── SKILL.md                         # Top-level orchestrator + routing table to sub-skills
+│   ├── reference/                       # Shared knowledge base (cited by every sub-skill)
+│   │   ├── xaml-anatomy.md              # WF4 XAML structure, namespaces, ActivityReference
+│   │   ├── activity-types.md            # mxswa:* / mcwc:* activity catalog
+│   │   ├── vb-expressions.md            # bracket [expr] dynamic value patterns
+│   │   ├── trigger-types.md             # TriggerType, Scope, Mode, RunAs reference
+│   │   ├── web-research.md              # MS Learn citations + AsyncOperation states + best practices
+│   │   └── example-workflow.xaml        # one anonymized end-to-end example
+│   ├── examples/                        # Worked code examples
+│   │   └── custom-activity-substring.cs # CodeActivity scaffold (anonymized)
+│   └── skills/                          # 7 sub-skills, each with its own SKILL.md
+│       ├── read-workflow/               # parse + summarize a workflow
+│       ├── analyze-workflow/            # gap-analyze against requirements
+│       ├── compare-workflows/           # diff two workflow XAML files
+│       ├── copy-workflow/               # clone via Process Template (with gotchas)
+│       ├── write-workflow/              # round-trip-safe XAML edits
+│       ├── write-custom-activity/       # scaffold C# CodeActivity assemblies
+│       └── publish-workflow/            # activate / import / export via PAC CLI
 ├── build.sh                             # Build script (bash)
-├── build.ps1                            # Build script (PowerShell)
-└── .github/workflows/release.yml        # CI: build + publish releases
+└── build.ps1                            # Build script (PowerShell)
 ```
 
 ## 🔧 Usage
@@ -165,14 +238,30 @@ agent-skills/
 2. Start with `SKILL.md` for the main instructions
 3. Reference files in `references/` (e.g., `CREDENTIAL_PATTERNS.md`, `TRIGGER_PATTERNS.md`) as needed
 
-## 📦 Distribution Packages
+### Working with a Dataverse Classic Workflow
 
-Pre-built zip packages are available on the [Releases](https://github.com/rwilson504/agent-skills/releases) page.
+1. Navigate to the `dataverse-classic-workflow/` directory
+2. Start with `SKILL.md` — it routes to the right sub-skill based on user intent
+3. Sub-skills live in `skills/<name>/SKILL.md`; the shared knowledge base lives in `reference/`
+4. The `examples/` folder contains a fully anonymized custom workflow activity scaffold
+
+## 📦 Distribution
+
+Skills can be consumed three ways — pick whichever fits your tooling:
+
+### 1. GitHub Copilot CLI Marketplace
+
+The repo itself is a Copilot CLI plugin marketplace (see [.github/plugin/marketplace.json](.github/plugin/marketplace.json)). Add it once and install any of the skills as plugins — see [Installation](#installation) above.
+
+### 2. Pre-built Zip Releases
+
+Pre-built zip packages are published on the [Releases](https://github.com/rwilson504/agent-skills/releases) page for agents that don't speak the Copilot CLI plugin protocol (Cursor, Windsurf, manual installs, air-gapped environments, etc.).
 
 Each release includes:
 - **agent-skills-v\<version\>.zip** — Complete bundle with all skills
 - **n8n-create-nodes-v\<version\>.zip** — n8n skill only
 - **power-platform-custom-connector-v\<version\>.zip** — Power Platform skill only
+- **dataverse-classic-workflow-v\<version\>.zip** — Dataverse Classic Workflow skill only
 
 ### Building Locally
 
@@ -218,6 +307,11 @@ Contributions are welcome! If you'd like to add new skills or improve existing o
 - [n8n Node Development Documentation](https://docs.n8n.io/integrations/creating-nodes/)
 - [n8n Community Nodes](https://docs.n8n.io/integrations/community-nodes/)
 - [n8n GitHub Repository](https://github.com/n8n-io/n8n)
+
+### Dataverse Classic Workflow
+- [Workflow processes (MS Learn)](https://learn.microsoft.com/power-automate/workflow-processes) — authoritative reference
+- [Workflow extensions / Custom workflow activities (MS Learn)](https://learn.microsoft.com/power-apps/developer/data-platform/workflow/workflow-extensions)
+- [Power Platform CLI](https://learn.microsoft.com/power-platform/developer/cli/introduction)
 
 ## 📄 License
 
