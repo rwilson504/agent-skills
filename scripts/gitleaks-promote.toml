@@ -1,0 +1,13 @@
+title = "agent-skills promote-scan config"
+
+# Keep default detector coverage from gitleaks and only add narrow allows
+# for known-safe docs placeholders.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "safe placeholders"
+regexes = [
+  '''[A-Za-z0-9._%+-]+@(?:example\.com|users\.noreply\.github\.com)''',
+  '''00000000-0000-0000-0000-000000000000'''
+]

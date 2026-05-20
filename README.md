@@ -119,6 +119,30 @@ node scripts/bump-skill-version.mjs <skill> patch|minor|major|X.Y.Z
 
 This updates `src/skills/<skill>/SKILL.md` (top-level + `metadata.version`) and `plugins.yml` atomically, then regenerates `plugins/` and `marketplace.json` so everything stays in sync.
 
+### Promoting a skill or agent from another repo
+
+```powershell
+# Single skill -> its own plugin (version derived from SKILL.md frontmatter)
+pwsh scripts/promote-skill.ps1 `
+  -Name my-cool-skill `
+  -SkillSource ..\agent-plugins-personal\src\skills\my-cool-skill `
+  -Description "Short single-line description" `
+  -Keywords kw1,kw2
+
+# Agent + supporting skills -> one bundled plugin
+pwsh scripts/promote-skill.ps1 `
+  -Name release-helper `
+  -AgentSource ..\agent-plugins-personal\src\agents\release-helper.agent.md `
+  -SkillSource @(
+      "..\agent-plugins-personal\src\skills\version-bump",
+      "..\agent-plugins-personal\src\skills\changelog-gen"
+  ) `
+  -Description "Drives a release: bumps versions, regenerates changelog, opens PR" `
+  -Version 1.0.0
+```
+
+[`scripts/promote-skill.ps1`](scripts/promote-skill.ps1) first runs [`scripts/scan-leaks.ps1`](scripts/scan-leaks.ps1) against the source paths (gitleaks + sensitivity regex checks), then copies source assets into `src/skills/` and `src/agents/`, rewrites the source repo's bare name to `agent-skills` in copied `.md` files (Claude install paths, Copilot marketplace add, `<skill>@<repo>` install commands), appends a new entry to [`plugins.yml`](plugins.yml), and runs `build-plugins.ps1` + `lint.ps1` to materialize and validate. Use `-DryRun` to preview, `-Force` to re-promote an existing entry, `-SkipBuild` if batching multiple promotions, and `-SkipScan` only for emergency overrides.
+
 ## Releasing
 
 Releases are label-driven. Open a PR, tag it `skill:<name>` + `bump:<patch|minor|major>`, and merge. The [`release-on-merge.yml`](.github/workflows/release-on-merge.yml) workflow handles the version bump, tag, and per-skill GitHub Release with zip assets attached. The repo-wide [`release.yml`](.github/workflows/release.yml) workflow runs on `v*` tag pushes and creates a snapshot bundle release.
