@@ -18,7 +18,7 @@
 
 marketplace:
   name: agent-skills
-  description: Specialized skills for building and deploying integrations across Microsoft Power Platform and the n8n workflow automation ecosystem. Includes Power Platform custom connector authoring, n8n community node development, and Dataverse Classic Workflow (WF4/XAML) tooling.
+  description: Specialized skills and agents for building and deploying integrations across Microsoft Power Platform and the n8n workflow automation ecosystem. Includes Power Platform custom connector authoring, the full n8n agent bundle (workflow building, debugging, Code-node scripting, community-node packaging, and self-hosting), and Dataverse Classic Workflow (WF4/XAML) tooling.
   owner_name: rwilson504
   owner_url: https://github.com/rwilson504
   version: 1.0.0
@@ -59,6 +59,95 @@ plugins:
       - workflow-sdk
     skills:
       - n8n-create-nodes
+
+  n8n-build-workflow:
+    description: Design and author n8n workflow JSON — triggers, flow logic (IF/Switch/Merge/Loop), expressions, AI workflows (LangChain cluster nodes), sub-workflows, and the array-of-items data model. Emits import-ready JSON.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n-build-workflow
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - n8n
+      - workflow
+      - automation
+      - ai-workflows
+      - low-code
+    skills:
+      - n8n-build-workflow
+
+  n8n-debug-workflow:
+    description: Diagnose failing n8n executions. Indexed error catalog, item-linking forensics, rate-limit recovery, trigger debugging (Webhook/Schedule/App), and resilience patterns (retryOnFail, continueOnFail, Error Workflows).
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n-debug-workflow
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - n8n
+      - debugging
+      - troubleshooting
+      - error-handling
+      - rate-limits
+    skills:
+      - n8n-debug-workflow
+
+  n8n-code-node:
+    description: Write correct JavaScript or Python in the n8n Code node. Covers both run modes, the canonical pairedItem-preserving pattern, binary helpers, Luxon and JMESPath, the Pyodide runtime, and AI Code Tools.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n-code-node
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - n8n
+      - code-node
+      - javascript
+      - python
+      - pyodide
+    skills:
+      - n8n-code-node
+
+  n8n-self-host:
+    description: Install, configure, and operate self-hosted n8n. Day-0 production checklist, Docker Compose (single + queue mode), reverse-proxy configs, Postgres setup and SQLite migration, encryption-key handling, backups, and upgrades.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n-self-host
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - n8n
+      - self-hosted
+      - docker
+      - queue-mode
+      - hosting
+      - postgres
+    skills:
+      - n8n-self-host
+
+  n8n:
+    description: Full n8n agent bundle — orchestrator agent plus all five n8n skills (build/debug/code-node/self-host/community-nodes). Drives a continuous-learning loop that captures each session's discoveries back into the skill bundle.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - n8n
+      - workflow-automation
+      - agent
+      - orchestrator
+      - community-nodes
+      - self-hosted
+      - ai-workflows
+    agents:
+      - n8n
+    skills:
+      - n8n-build-workflow
+      - n8n-debug-workflow
+      - n8n-code-node
+      - n8n-create-nodes
+      - n8n-self-host
 
   dataverse-classic-workflow:
     description: Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Bundles a top-level orchestrator plus 7 sub-skills and a shared knowledge base.

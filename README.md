@@ -1,14 +1,26 @@
 # Agent Skills
 
-A curated set of [AgentSkills](https://agentskills.io/)-format skills for AI coding agents. Currently focused on Power Platform custom connectors, n8n community nodes, and Dataverse Classic Workflow tooling. Compatible with [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace), [Claude Code](https://docs.anthropic.com/claude/docs/claude-code), and any [OpenClaw](https://docs.openclaw.ai/)-compatible runtime.
+A curated set of [AgentSkills](https://agentskills.io/)-format skills and agents for AI coding agents. Currently focused on Power Platform custom connectors, the full n8n workflow-automation lifecycle (workflow design, debugging, Code-node scripting, community-node packaging, self-hosting), and Dataverse Classic Workflow tooling. Compatible with [GitHub Copilot CLI](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace), [Claude Code](https://docs.anthropic.com/claude/docs/claude-code), and any [OpenClaw](https://docs.openclaw.ai/)-compatible runtime.
+
+## Available agents
+
+| Agent | What it does | Docs |
+|---|---|---|
+| [`n8n`](src/agents/n8n.agent.md) | Orchestrator for the n8n skill bundle. Routes to build/debug/code-node/community-nodes/self-host, drives a continuous-learning loop that captures each session's discoveries back into the bundle | [agent](src/agents/n8n.agent.md) |
 
 ## Available skills
 
 | Skill | What it does | Docs |
 |---|---|---|
+| [`n8n-build-workflow`](src/skills/n8n-build-workflow/) | Design and author n8n workflow JSON — triggers, flow logic, expressions, AI workflows (LangChain cluster) | [README](src/skills/n8n-build-workflow/README.md) |
+| [`n8n-debug-workflow`](src/skills/n8n-debug-workflow/) | Diagnose failing n8n executions — error catalog, item-linking forensics, rate-limit recovery, trigger debugging | [README](src/skills/n8n-debug-workflow/README.md) |
+| [`n8n-code-node`](src/skills/n8n-code-node/) | Write correct JavaScript or Python in the Code node — run modes, pairedItem, binary helpers, Luxon, JMESPath, Pyodide | [README](src/skills/n8n-code-node/README.md) |
 | [`n8n-create-nodes`](src/skills/n8n-create-nodes/) | Build n8n community node packages — declarative or programmatic | [README](src/skills/n8n-create-nodes/README.md) |
+| [`n8n-self-host`](src/skills/n8n-self-host/) | Install, configure, and operate self-hosted n8n — Docker, queue mode, reverse proxy, Postgres, backups, upgrades | [README](src/skills/n8n-self-host/README.md) |
 | [`power-platform-custom-connector`](src/skills/power-platform-custom-connector/) | Author Power Platform custom connectors (Independent + Verified Publisher) | [README](src/skills/power-platform-custom-connector/README.md) |
 | [`dataverse-classic-workflow`](src/skills/dataverse-classic-workflow/) | Read, edit, copy, and publish Dataverse WF4/XAML classic workflows | [README](src/skills/dataverse-classic-workflow/README.md) |
+
+The `n8n` plugin bundles the agent plus all five n8n skills as one install. Each skill is also available as its own plugin.
 
 Each skill is versioned independently and ships its own per-plugin zip on every release.
 
@@ -31,7 +43,7 @@ The `plugins/` tree and `marketplace.json` are produced by [`scripts/build-plugi
 
 ## Installation
 
-Replace `<skill>` below with one of: `n8n-create-nodes`, `power-platform-custom-connector`, or `dataverse-classic-workflow`. Per-skill READMEs have ready-to-paste copies.
+Replace `<skill>` below with one of: `n8n` (full agent bundle), `n8n-build-workflow`, `n8n-debug-workflow`, `n8n-code-node`, `n8n-create-nodes`, `n8n-self-host`, `power-platform-custom-connector`, or `dataverse-classic-workflow`. Per-skill READMEs have ready-to-paste copies.
 
 ### GitHub Copilot CLI (recommended)
 

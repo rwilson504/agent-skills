@@ -1,0 +1,33 @@
+{
+  "name": "n8n",
+  "description": "Full n8n agent bundle — orchestrator agent plus all five n8n skills (build/debug/code-node/self-host/community-nodes). Drives a continuous-learning loop that captures each session's discoveries back into the skill bundle.",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "n8n",
+    "workflow-automation",
+    "agent",
+    "orchestrator",
+    "community-nodes",
+    "self-hosted",
+    "ai-workflows"
+  ],
+  "tags": [
+    "n8n",
+    "workflow-automation",
+    "agent",
+    "orchestrator",
+    "community-nodes",
+    "self-hosted",
+    "ai-workflows"
+  ],
+  "agents": "agents/",
+  "skills": "skills/"
+}

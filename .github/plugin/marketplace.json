@@ -5,7 +5,7 @@
     "url": "https://github.com/rwilson504"
   },
   "metadata": {
-    "description": "Specialized skills for building and deploying integrations across Microsoft Power Platform and the n8n workflow automation ecosystem. Includes Power Platform custom connector authoring, n8n community node development, and Dataverse Classic Workflow (WF4/XAML) tooling.",
+    "description": "Specialized skills and agents for building and deploying integrations across Microsoft Power Platform and the n8n workflow automation ecosystem. Includes Power Platform custom connector authoring, the full n8n agent bundle (workflow building, debugging, Code-node scripting, community-node packaging, and self-hosting), and Dataverse Classic Workflow (WF4/XAML) tooling.",
     "version": "1.0.0",
     "pluginRoot": "."
   },
@@ -28,6 +28,53 @@
       "license": "MIT"
     },
     {
+      "name": "n8n",
+      "source": "plugins/n8n",
+      "description": "Full n8n agent bundle — orchestrator agent plus all five n8n skills (build/debug/code-node/self-host/community-nodes). Drives a continuous-learning loop that captures each session's discoveries back into the skill bundle.",
+      "version": "1.0.0",
+      "keywords": [
+        "n8n",
+        "workflow-automation",
+        "agent",
+        "orchestrator",
+        "community-nodes",
+        "self-hosted",
+        "ai-workflows"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
+      "name": "n8n-build-workflow",
+      "source": "plugins/n8n-build-workflow",
+      "description": "Design and author n8n workflow JSON — triggers, flow logic (IF/Switch/Merge/Loop), expressions, AI workflows (LangChain cluster nodes), sub-workflows, and the array-of-items data model. Emits import-ready JSON.",
+      "version": "1.0.0",
+      "keywords": [
+        "n8n",
+        "workflow",
+        "automation",
+        "ai-workflows",
+        "low-code"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
+      "name": "n8n-code-node",
+      "source": "plugins/n8n-code-node",
+      "description": "Write correct JavaScript or Python in the n8n Code node. Covers both run modes, the canonical pairedItem-preserving pattern, binary helpers, Luxon and JMESPath, the Pyodide runtime, and AI Code Tools.",
+      "version": "1.0.0",
+      "keywords": [
+        "n8n",
+        "code-node",
+        "javascript",
+        "python",
+        "pyodide"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
       "name": "n8n-create-nodes",
       "source": "plugins/n8n-create-nodes",
       "description": "Build production-ready n8n community nodes as npm packages. Covers declarative (REST API wrapping) and programmatic (custom logic) node styles, credential types, webhook/poll triggers, versioned nodes, and publishing to the n8n community.",
@@ -38,6 +85,37 @@
         "node-development",
         "npm-package",
         "workflow-sdk"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
+      "name": "n8n-debug-workflow",
+      "source": "plugins/n8n-debug-workflow",
+      "description": "Diagnose failing n8n executions. Indexed error catalog, item-linking forensics, rate-limit recovery, trigger debugging (Webhook/Schedule/App), and resilience patterns (retryOnFail, continueOnFail, Error Workflows).",
+      "version": "1.0.0",
+      "keywords": [
+        "n8n",
+        "debugging",
+        "troubleshooting",
+        "error-handling",
+        "rate-limits"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
+      "name": "n8n-self-host",
+      "source": "plugins/n8n-self-host",
+      "description": "Install, configure, and operate self-hosted n8n. Day-0 production checklist, Docker Compose (single + queue mode), reverse-proxy configs, Postgres setup and SQLite migration, encryption-key handling, backups, and upgrades.",
+      "version": "1.0.0",
+      "keywords": [
+        "n8n",
+        "self-hosted",
+        "docker",
+        "queue-mode",
+        "hosting",
+        "postgres"
       ],
       "category": "development",
       "license": "MIT"

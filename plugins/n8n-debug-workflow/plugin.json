@@ -1,0 +1,28 @@
+{
+  "name": "n8n-debug-workflow",
+  "description": "Diagnose failing n8n executions. Indexed error catalog, item-linking forensics, rate-limit recovery, trigger debugging (Webhook/Schedule/App), and resilience patterns (retryOnFail, continueOnFail, Error Workflows).",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n-debug-workflow",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "n8n",
+    "debugging",
+    "troubleshooting",
+    "error-handling",
+    "rate-limits"
+  ],
+  "tags": [
+    "n8n",
+    "debugging",
+    "troubleshooting",
+    "error-handling",
+    "rate-limits"
+  ],
+  "skills": "skills/"
+}
