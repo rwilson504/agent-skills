@@ -1,4 +1,12 @@
-# analyze-workflow
+---
+name: dataverse-classic-analyze
+description: 'Gap-analyze an existing Dataverse Classic Workflow against new requirements and flag risky patterns. Use when user says "I have new requirements, what needs to change", "does this workflow meet this spec", "gap analysis", "review this workflow", "what is wrong with this workflow", "why does this loop", "is this workflow going to run away", "audit this workflow", or supplies a requirements document alongside a `.xaml`. Produces a requirement-by-requirement verdict plus a change plan, and checks the documented failure modes: infinite-loop protection (the 16-in-a-short-window rule), hierarchical Under / Not Under operator behavior, scope and run-as mismatches, and MS Learn best-practice violations. Do NOT use for plain summarization (use dataverse-classic-read) or for applying the changes (use dataverse-classic-write).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "gap-analysis", "review", "infinite-loop", "best-practices"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "🧪" } }
+---
+
+# Analyze a Classic Workflow
 
 **Compare a Classic Workflow against a set of requirements and produce a
 prioritized change list mapped to specific XAML edit points.** This is the
@@ -46,7 +54,7 @@ A prioritized, actionable change list with:
 
 ### Step 1 — Read the current workflow
 
-Invoke the [read-workflow](../read-workflow/SKILL.md) procedure first.
+Invoke the [read-workflow](../dataverse-classic-read/SKILL.md) procedure first.
 You need the structured summary to reason about what changes apply where.
 Do this even if the user is impatient — without the parse, recommendations
 are guessing.
@@ -62,7 +70,7 @@ of testable assertions. For each requirement, extract:
 
 If the user just said "audit this", skip this step and use the patterns
 table from
-[reference/trigger-types.md §"Patterns to flag in summaries / reviews"](../../reference/trigger-types.md#patterns-to-flag-in-summaries--reviews)
+[reference/trigger-types.md §"Patterns to flag in summaries / reviews"](../dataverse-classic-workflow/reference/trigger-types.md#patterns-to-flag-in-summaries--reviews)
 as the implicit requirement set.
 
 ### Step 3 — Build the coverage table
@@ -98,12 +106,12 @@ they land in the change plan.
 | 10 | Every direct `mxswa:*` activity has a non-empty `DisplayName` (missing names will display as `(no name)` and confuse comparison/diff tooling) | warning |
 | 11 | Every `EvaluateCondition` operator that is not `Null` or `NotNull` has a corresponding `Parameters` `EvaluateExpression` for its right operand | error |
 | 12 | If `Scope = Organization`, the `RunAs` is `Owner` (not `CallingUser`) — otherwise the workflow may not have permission to read records outside the calling user's BU | warning |
-| 13 | If the workflow is triggered by Update on a column AND issues an `mxswa:UpdateEntity` that writes the same column on the same record, there is a guard (Check Condition comparing old vs new value, or a "WorkflowProcessed" flag) — otherwise the engine's 16-runs-per-row infinite-loop kill switch will fire ([web-research §4](../../reference/web-research.md#4-infinite-loop-protection-the-16-in-a-short-window-rule)) | error |
+| 13 | If the workflow is triggered by Update on a column AND issues an `mxswa:UpdateEntity` that writes the same column on the same record, there is a guard (Check Condition comparing old vs new value, or a "WorkflowProcessed" flag) — otherwise the engine's 16-runs-per-row infinite-loop kill switch will fire ([web-research §4](../dataverse-classic-workflow/reference/web-research.md#4-infinite-loop-protection-the-16-in-a-short-window-rule)) | error |
 | 14 | If `Mode = Real-Time`, no `Parallel Wait Branch` activity is present (real-time forbids parallel-wait, same as Wait Conditions) | error |
-| 15 | If a Check Condition uses operator `Under` or `NotUnder`, the deployment notes flag a **Hierarchical relationship dependency** on the condition's entity — activation will fail in target orgs without a relationship marked Hierarchical ([web-research §8](../../reference/web-research.md#8-hierarchical-operators-under--not-under)) | warning |
-| 16 | If multiple workflows in the solution all trigger on the same `PrimaryEntity` and Update of the same columns, flag a **lock contention risk** ("multiple workflows updating the same table") and recommend consolidating logic ([web-research §5 row 2](../../reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | warning |
-| 17 | If `Mode = Background` and `Workflow Job Retention` is not set to "Automatically delete completed workflow jobs", flag the storage-growth recommendation ([web-research §5 row 6](../../reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | info |
-| 18 | If logic is duplicated across multiple workflows (same sequence of activities with the same parameters), recommend extracting to a child workflow ([web-research §5 row 4](../../reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | info |
+| 15 | If a Check Condition uses operator `Under` or `NotUnder`, the deployment notes flag a **Hierarchical relationship dependency** on the condition's entity — activation will fail in target orgs without a relationship marked Hierarchical ([web-research §8](../dataverse-classic-workflow/reference/web-research.md#8-hierarchical-operators-under--not-under)) | warning |
+| 16 | If multiple workflows in the solution all trigger on the same `PrimaryEntity` and Update of the same columns, flag a **lock contention risk** ("multiple workflows updating the same table") and recommend consolidating logic ([web-research §5 row 2](../dataverse-classic-workflow/reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | warning |
+| 17 | If `Mode = Background` and `Workflow Job Retention` is not set to "Automatically delete completed workflow jobs", flag the storage-growth recommendation ([web-research §5 row 6](../dataverse-classic-workflow/reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | info |
+| 18 | If logic is duplicated across multiple workflows (same sequence of activities with the same parameters), recommend extracting to a child workflow ([web-research §5 row 4](../dataverse-classic-workflow/reference/web-research.md#5-authoritative-best-practice-list-from-ms-learn)) | info |
 
 Anything **server-side** (entity actually exists, schema names valid, option
 set values valid, child workflow ID exists, recipient queue ID exists) is
@@ -197,7 +205,7 @@ at the end. Don't fill in defaults silently. Examples:
 2. {question}
 
 (Once you answer these, I can produce the actual edits with the
-[write-workflow](../write-workflow/SKILL.md) skill.)
+[write-workflow](../dataverse-classic-write/SKILL.md) skill.)
 ````
 
 ---

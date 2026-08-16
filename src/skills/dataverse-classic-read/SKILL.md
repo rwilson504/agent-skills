@@ -1,4 +1,12 @@
-# read-workflow
+---
+name: dataverse-classic-read
+description: 'Parse and summarize a Dataverse Classic Workflow XAML file (WF4, the `workflow` table) into a human-readable narrative. Use when user says "what does this workflow do", "summarize this workflow", "explain this XAML", "walk me through this workflow", "what triggers this", "what are the steps", "extract the trigger info", "is this real-time or background", "what scope does this run at", or pastes/points at a `.xaml` file from `pac solution clone` or `unpack`. Produces trigger + scope + mode + run-as details and a step-by-step narrative, resolving `mxswa:ActivityReference` wrappers and `[bracket]` VB.NET expressions into plain language. Do NOT use for editing XAML (use dataverse-classic-write), diffing two versions (use dataverse-classic-compare), or gap analysis against requirements (use dataverse-classic-analyze).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "xaml", "wf4", "read", "summarize"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "🔍" } }
+---
+
+# Read a Classic Workflow
 
 **Parse a Dataverse Classic Workflow XAML file and produce a human-readable
 summary.** This is almost always the first skill to invoke — every other skill
@@ -62,7 +70,7 @@ metadata; fall back to the XAML root attributes if the sibling is missing.
 
 Read the entire XAML. Walk the tree from `<mxswa:Workflow>` → `<Sequence>`
 and collect activities. Apply these rules from
-[reference/xaml-anatomy.md](../../reference/xaml-anatomy.md):
+[reference/xaml-anatomy.md](../dataverse-classic-workflow/reference/xaml-anatomy.md):
 
 - **Direct `mxswa:*` elements** → user-visible steps.
 - **Direct `mcwc:*` elements** → user-visible form-side steps.
@@ -100,7 +108,7 @@ you rolled up:
 | `mxswa:ActivityReference` to a Composite **without** a DisplayName | An anonymous group — render its children inline at the parent level |
 
 If you see an unrecognized AQN class name (one not listed in
-[reference/activity-types.md §4](../../reference/activity-types.md#4-conditions-and-branching)
+[reference/activity-types.md §4](../dataverse-classic-workflow/reference/activity-types.md#4-conditions-and-branching)
 or any of the BPF-internal classes called out there), treat it as a
 Custom CodeActivity and surface the AQN to the user.
 
@@ -108,7 +116,7 @@ Custom CodeActivity and surface the AQN to the user.
 
 For any VB bracket expression you encounter (subject lines, condition
 operands, field assignments), render it in friendly token form per
-[reference/vb-expressions.md](../../reference/vb-expressions.md):
+[reference/vb-expressions.md](../dataverse-classic-workflow/reference/vb-expressions.md):
 
 - `GetVariableValue(EntityProperty("name", "account"), "")` → `{Account: Name}`
 - `[True]` / `[False]` → `True` / `False`
@@ -118,7 +126,7 @@ operands, field assignments), render it in friendly token form per
 ### Step 5 — Surface findings
 
 Run the workflow against the patterns table in
-[reference/trigger-types.md §"Patterns to flag in summaries / reviews"](../../reference/trigger-types.md#patterns-to-flag-in-summaries--reviews).
+[reference/trigger-types.md §"Patterns to flag in summaries / reviews"](../dataverse-classic-workflow/reference/trigger-types.md#patterns-to-flag-in-summaries--reviews).
 Report any matches as a "Findings" section at the bottom of the summary.
 
 ---
@@ -171,7 +179,7 @@ Report any matches as a "Findings" section at the bottom of the summary.
 - **Wrong category** (BPF, Business Rule, Modern Flow) → as in Step 1,
   stop and explain.
 - **Activity types you don't recognize** → look them up in
-  [reference/activity-types.md](../../reference/activity-types.md). If
+  [reference/activity-types.md](../dataverse-classic-workflow/reference/activity-types.md). If
   still unknown, treat them as Custom CodeActivity (Section 8 of that
   reference) and surface the AssemblyQualifiedName.
 

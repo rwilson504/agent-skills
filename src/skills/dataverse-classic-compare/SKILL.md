@@ -1,4 +1,12 @@
-# compare-workflows
+---
+name: dataverse-classic-compare
+description: 'Structurally diff two Dataverse Classic Workflow XAML files and report what actually changed. Use when user says "what changed between these two workflows", "diff these workflows", "compare version A and B", "compare DEV and PROD copies of this workflow", "why does this behave differently in the other environment", "did anything change other than formatting", or supplies two `.xaml` files. Compares triggers, scope, steps, and conditions at the activity level rather than by text diff, so reordered attributes, regenerated GUIDs, and `UserData` designer blobs do not drown the real differences. Do NOT use for summarizing a single workflow (use dataverse-classic-read), applying changes (use dataverse-classic-write), or cloning one workflow into another (use dataverse-classic-copy).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "diff", "compare", "xaml", "environments"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "⚖️" } }
+---
+
+# Compare Two Classic Workflows
 
 **Diff two Classic Workflow XAML files and explain what changed in
 human-readable form.** Useful when comparing an old workflow to a new
@@ -41,7 +49,7 @@ A diff report with:
 
 ### Step 1 — Parse both sides
 
-Run the [read-workflow](../read-workflow/SKILL.md) procedure on each file.
+Run the [read-workflow](../dataverse-classic-read/SKILL.md) procedure on each file.
 This gives you two structured representations to diff.
 
 ### Step 2 — Match steps across the two sides
@@ -93,7 +101,7 @@ For each pair of matched steps, dive into the activity:
 - **Stop Workflow:** status (Succeeded / Canceled) and message.
 
 For expressions, render in friendly form (per
-[reference/vb-expressions.md](../../reference/vb-expressions.md)) — show
+[reference/vb-expressions.md](../dataverse-classic-workflow/reference/vb-expressions.md)) — show
 the before and after side by side.
 
 ### Step 6 — Filter cosmetic differences

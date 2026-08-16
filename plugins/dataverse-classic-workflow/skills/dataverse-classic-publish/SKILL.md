@@ -1,4 +1,12 @@
-# publish-workflow
+---
+name: dataverse-classic-publish
+description: 'Get a Dataverse Classic Workflow back into an environment and switched on, using the Power Platform CLI. Use when user says "publish this workflow", "activate this workflow", "deactivate this workflow", "import this solution", "export the solution", "push this to my org", "promote this from DEV to TEST", "pack the solution", "my workflow imported but is not running", or works with `pac solution pack` / `unpack` / `import` / `export`. Covers the pack and import sequence, activation ordering and why activation fails when dependencies are missing, managed versus unmanaged considerations, and the AsyncOperation lifecycle to check after a workflow starts running. Do NOT use for editing XAML (use dataverse-classic-write) or cloning a workflow within one environment (use dataverse-classic-copy).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "pac-cli", "solution", "activate", "deployment"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "🚀" } }
+---
+
+# Publish a Classic Workflow
 
 **Activate, deactivate, import, or export Classic Workflows in a Dataverse
 environment, using the Power Platform CLI (`pac`).**
@@ -228,7 +236,7 @@ After every successful operation, tell the user what to verify:
 |---------|--------------|-----|
 | Import error: "Cannot start the requested operation [PublishAll] because there is another [Import] running" | A previous async import is still in progress | Wait for it to finish, or use synchronous import (drop `--async`) |
 | Import error: "Workflow not found" | Targeting wrong environment, or solution doesn't include the workflow | Verify `pac auth select` and that the workflow is included in the solution |
-| Activate fails: "Workflow has not been validated" | Workflow XAML has compile errors | Open it in the legacy designer to see specific errors, or run the [analyze-workflow](../analyze-workflow/SKILL.md) skill |
+| Activate fails: "Workflow has not been validated" | Workflow XAML has compile errors | Open it in the legacy designer to see specific errors, or run the [analyze-workflow](../dataverse-classic-analyze/SKILL.md) skill |
 | Activate fails: "Workflow is already activated" | Workflow imported in active state | Deactivate, then re-activate |
 | Imported workflow doesn't appear active in source-control | Activation state is per-environment, not in the XAML | This is expected behavior |
 

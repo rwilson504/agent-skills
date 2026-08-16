@@ -1,4 +1,12 @@
-# write-workflow
+---
+name: dataverse-classic-write
+description: 'Make round-trip-safe edits to Dataverse Classic Workflow XAML so the classic designer still opens the result. Use when user says "add a step to this workflow", "remove this step", "change this condition", "modify this workflow", "edit this XAML", "insert an update step", "change the email body", "add a branch", or asks for any change to a `.xaml` workflow file. Enforces the rules that break workflows when ignored: the mandatory ConditionSequence to ConditionBranch to Composite nesting, wrapping control-flow activities in `mxswa:ActivityReference` rather than emitting them directly, preserving `UserData` and `mva:VisualBasicValue` designer blobs, and the CreateCrmType payload shape required for write operations. Do NOT use for authoring a C# activity assembly (use dataverse-classic-custom-activity) or for activating and importing (use dataverse-classic-publish).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "xaml", "edit", "round-trip", "conditionsequence"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "✏️" } }
+---
+
+# Edit a Classic Workflow
 
 **Edit Classic Workflow XAML safely, preserving WF4 round-trip fidelity.**
 This is the skill behind requests like "add a step", "modify this
@@ -21,7 +29,7 @@ condition", "change the email subject", or "remove this branch".
 ## When NOT to use
 
 - The user wants to *plan* changes — that's the
-  [analyze-workflow](../analyze-workflow/SKILL.md) skill. Use this skill
+  [analyze-workflow](../dataverse-classic-analyze/SKILL.md) skill. Use this skill
   only when they're ready to make the change.
 - The user wants to convert a workflow's `Mode` (Background ↔ Real-Time)
   or change `PrimaryEntity` — these are best done in the legacy designer,
@@ -35,7 +43,7 @@ condition", "change the email subject", or "remove this branch".
 
 - **Required:** Path to the workflow XAML file.
 - **Required:** A description of the edit.
-- **Strongly recommended:** Output of the [read-workflow](../read-workflow/SKILL.md)
+- **Strongly recommended:** Output of the [read-workflow](../dataverse-classic-read/SKILL.md)
   skill on the same file (so you and the user share an understanding of
   the current state).
 
@@ -84,14 +92,14 @@ operations:
 | "Rename a step" | Update the element's `DisplayName` attribute (and the matching `UserData` entry if present) |
 | "Add an Else branch" | Append a new `ConditionBranch` (without a condition) inside the ConditionSequence |
 
-Reference [reference/activity-types.md](../../reference/activity-types.md) for the
+Reference [reference/activity-types.md](../dataverse-classic-workflow/reference/activity-types.md) for the
 correct element / `AssemblyQualifiedName` for whatever you're inserting.
 
 ### Step 4 — Generate XAML for additions
 
 When inserting new elements, **copy the namespace prefixes used by the
 file** (don't add new ones) and follow the templates in
-[reference/activity-types.md](../../reference/activity-types.md).
+[reference/activity-types.md](../dataverse-classic-workflow/reference/activity-types.md).
 
 Critical templates to get right:
 
@@ -111,7 +119,7 @@ version numbers and PublicKeyToken values may vary by Dataverse version
 
 **Adding any expression (subject line, condition operand, field assignment):**
 Wrap the expression in `[brackets]` and properly XML-escape it
-(per [reference/vb-expressions.md](../../reference/vb-expressions.md)):
+(per [reference/vb-expressions.md](../dataverse-classic-workflow/reference/vb-expressions.md)):
 - `&` → `&amp;`
 - `"` → `&quot;`
 - `<` → `&lt;`
@@ -124,7 +132,7 @@ A new field assignment is **two** activities, in this exact order:
    `ExpressionOperator="CreateCrmType"` and a `Parameters` argument
    carrying the three-element `New Object() { WorkflowPropertyType.<T>,
    <value>, <typeHint> }` array. See
-   [reference/vb-expressions.md — The `CreateCrmType` payload shape](../../reference/vb-expressions.md#the-createcrmtype-payload-shape--critical-for-write-operations).
+   [reference/vb-expressions.md — The `CreateCrmType` payload shape](../dataverse-classic-workflow/reference/vb-expressions.md#the-createcrmtype-payload-shape--critical-for-write-operations).
 2. An `mxswa:SetEntityProperty` that consumes the output variable and
    writes it to the field on the (in-flight) entity (`#Temp` form).
 
@@ -191,7 +199,7 @@ Tell the user:
   - "Re-pack the solution: `pac solution pack …`"
   - "Re-import to your org: `pac solution import …`"
   - "Re-activate the workflow after import (it imports as Draft)."
-  - Or, if they're using the [publish-workflow](../publish-workflow/SKILL.md)
+  - Or, if they're using the [publish-workflow](../dataverse-classic-publish/SKILL.md)
     skill: "Ready to publish — run the publish-workflow skill."
 
 ---
@@ -212,7 +220,7 @@ Before writing any edit, verify:
       not direct elements.
 - [ ] A new ConditionSequence has the full three-level
       `ConditionSequence → ConditionBranch → Composite` nesting (see
-      [reference/xaml-anatomy.md §3a](../../reference/xaml-anatomy.md#3a-the-mandatory-conditionsequence-→-conditionbranch-→-composite-nesting)).
+      [reference/xaml-anatomy.md §3a](../dataverse-classic-workflow/reference/xaml-anatomy.md#3a-the-mandatory-conditionsequence-→-conditionbranch-→-composite-nesting)).
 - [ ] Every new field assignment is `EvaluateExpression(CreateCrmType)`
       followed by `SetEntityProperty` — never `SetEntityProperty` alone.
 - [ ] Conditions with operator `Null` or `NotNull` use
@@ -241,7 +249,7 @@ rather than emitting a probably-broken file.
 - Don't auto-fix unrelated issues you happen to notice. Surface them as
   findings; let the user request the fixes explicitly.
 - Don't import the modified file to the org as part of this skill —
-  that's the [publish-workflow](../publish-workflow/SKILL.md) skill's
+  that's the [publish-workflow](../dataverse-classic-publish/SKILL.md) skill's
   responsibility.
 - Don't apply edits without showing a diff and getting confirmation.
   Even "trivial" changes deserve a review pass.

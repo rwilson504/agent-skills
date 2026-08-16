@@ -69,8 +69,8 @@ plugins:
       - n8n-self-host
 
   dataverse-classic-workflow:
-    description: Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Bundles a top-level orchestrator plus 7 sub-skills and a shared knowledge base.
-    version: 1.0.1
+    description: Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Orchestrator agent plus seven task skills and a shared knowledge base.
+    version: 1.1.0
     license: MIT
     category: development
     homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow
@@ -83,8 +83,17 @@ plugins:
       - wf4
       - xaml
       - pac-cli
+    agents:
+      - dataverse-classic-workflow
     skills:
       - dataverse-classic-workflow
+      - dataverse-classic-read
+      - dataverse-classic-analyze
+      - dataverse-classic-compare
+      - dataverse-classic-copy
+      - dataverse-classic-write
+      - dataverse-classic-custom-activity
+      - dataverse-classic-publish
 
   xrmtoolbox-plugin-dev:
     description: Build, debug, and ship XrmToolBox plugins (tools) for Dataverse / Dynamics 365 CE. Covers PluginBase/PluginControlBase scaffolding, ExportMetadata, ExecuteMethod + WorkAsync, the optional plugin interfaces, Visual Studio debug setup (including Windows-on-ARM), secret storage, and NuGet packaging to the Tool Library.

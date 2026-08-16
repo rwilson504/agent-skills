@@ -13,8 +13,8 @@
     {
       "name": "dataverse-classic-workflow",
       "source": "plugins/dataverse-classic-workflow",
-      "description": "Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Bundles a top-level orchestrator plus 7 sub-skills and a shared knowledge base.",
-      "version": "1.0.1",
+      "description": "Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Orchestrator agent plus seven task skills and a shared knowledge base.",
+      "version": "1.1.0",
       "keywords": [
         "dataverse",
         "power-platform",

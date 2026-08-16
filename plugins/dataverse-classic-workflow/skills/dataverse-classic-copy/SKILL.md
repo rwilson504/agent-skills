@@ -1,4 +1,12 @@
-# copy-workflow
+---
+name: dataverse-classic-copy
+description: 'Clone a Dataverse Classic Workflow safely, using the Process Template path that works around the platform bug where a naively copied workflow will not activate. Use when user says "make a copy of this workflow", "clone this workflow", "duplicate this workflow", "fork this workflow as a starting point", "copy via Process Template", "save as template", "my copied workflow will not activate", or "why can I not turn on the workflow I duplicated". Covers the template create / instantiate / rename sequence, which identifiers must be regenerated versus preserved, and the trigger and scope settings that silently do not carry across. Do NOT use for editing an existing workflow in place (use dataverse-classic-write) or for moving a workflow between environments (use dataverse-classic-publish).'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "clone", "process-template", "activate-bug"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "📋" } }
+---
+
+# Copy a Classic Workflow
 
 **Copy an existing Classic Workflow by promoting it to a Process Template,
 then creating a new workflow from that template — and restore the metadata
@@ -19,9 +27,9 @@ that the template mechanism does NOT carry over.**
 - "Make a workflow template I can spin new workflows off of."
 
 If the user instead wants to **edit** the existing workflow in place, route
-to [write-workflow](../write-workflow/SKILL.md). If they want to **diff**
+to [write-workflow](../dataverse-classic-write/SKILL.md). If they want to **diff**
 the copy against the original later, route to
-[compare-workflows](../compare-workflows/SKILL.md).
+[compare-workflows](../dataverse-classic-compare/SKILL.md).
 
 ---
 
@@ -107,7 +115,7 @@ XAML locally, you can pull most of these from the `<mxswa:Workflow>` root
 attributes:
 
 - `Trigger="…"` → which triggers were checked (a bitmask — see
-  [trigger-types.md](../../reference/trigger-types.md))
+  [trigger-types.md](../dataverse-classic-workflow/reference/trigger-types.md))
 - `Scope="…"` → User / BusinessUnit / ParentChildBusinessUnit / Organization
 - `Mode="…"` → Background or RealTime
 - `RunAs="…"` → Owner or CallingUser
@@ -215,8 +223,8 @@ pac solution clone --name <SolutionUniqueName> --outputDirectory "<solution-fold
 
 The new workflow will land at
 `<solution-folder>/src/Workflows/<NewDisplayName>-<workflowId>.xaml`.
-At this point you can hand off to [read-workflow](../read-workflow/SKILL.md)
-or [write-workflow](../write-workflow/SKILL.md) for further work.
+At this point you can hand off to [read-workflow](../dataverse-classic-read/SKILL.md)
+or [write-workflow](../dataverse-classic-write/SKILL.md) for further work.
 
 ---
 

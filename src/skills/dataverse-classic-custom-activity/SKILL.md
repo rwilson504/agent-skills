@@ -1,4 +1,12 @@
-# write-custom-activity
+---
+name: dataverse-classic-custom-activity
+description: 'Scaffold a custom workflow activity for Dataverse Classic Workflows - a C# `CodeActivity` class that XAML can call through `mxswa:ActivityReference`. Use when user says "create a custom workflow activity", "scaffold a CodeActivity", "write a C# workflow step", "I need a step that does X and the platform has no built-in", "register my workflow assembly", "my custom activity does not show up in the designer", or works with `Microsoft.CrmSdk.Workflow` or spkl `[CrmPluginRegistration]`. Covers the .NET Framework 4.6.2 target, `[Input]` / `[Output]` / `[RequiredArgument]` / `[Default]` / `[ReferenceTarget]` / `[AttributeTarget]` parameter attributes, the sandbox constraints, and assembly registration. Do NOT use for editing workflow XAML (use dataverse-classic-write) or for Dataverse plugins registered on SDK message steps.'
+license: MIT-0
+version: 1.0.0
+metadata: { "author": "rwilson504", "version": "1.0.0", "category": "development", "tags": ["dataverse", "classic-workflow", "codeactivity", "csharp", "spkl", "crmsdk-workflow"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/dataverse-classic-workflow", "emoji": "🧱" } }
+---
+
+# Write a Custom Workflow Activity
 
 **Scaffold a C# custom workflow activity (CodeActivity assembly) that can be
 called from a Dataverse Classic Workflow.** This is the skill behind requests
@@ -8,7 +16,7 @@ or "add a new helper to my workflow activity library".
 > ⚠️ This skill produces C# source files for a class library that targets
 > **.NET Framework 4.6.2** and is registered against a Dataverse environment.
 > It does NOT modify any existing XAML — that is the
-> [`write-workflow`](../write-workflow/SKILL.md) skill's job. The flow is:
+> [`write-workflow`](../dataverse-classic-write/SKILL.md) skill's job. The flow is:
 > **author the activity → register the assembly → reference it from XAML.**
 
 ---
@@ -27,7 +35,7 @@ or "add a new helper to my workflow activity library".
 
 - The user wants to **call** an existing custom activity from a workflow — that
   is just an `mxswa:ActivityReference` edit; use
-  [`write-workflow`](../write-workflow/SKILL.md).
+  [`write-workflow`](../dataverse-classic-write/SKILL.md).
 - The logic can be expressed with built-in `mxswa:*` activities (Create / Update
   / Retrieve / Send Email / Check Condition) — recommend the declarative path
   first. Custom CodeActivities are an escape hatch, not a default.
@@ -60,7 +68,7 @@ or "add a new helper to my workflow activity library".
    attribute-driven, or PRT GUI).
 4. A **call-site snippet** showing the `mxswa:ActivityReference` element the
    classic workflow XAML will use after registration. Hand off to
-   [`write-workflow`](../write-workflow/SKILL.md) for actually inserting it.
+   [`write-workflow`](../dataverse-classic-write/SKILL.md) for actually inserting it.
 
 ---
 
@@ -77,9 +85,9 @@ The constraints below are not opinions — they are documented in MS Learn:
 - **Add to a solution (Plug-in assembly component):**
   <https://learn.microsoft.com/power-platform/alm/plugin-component>
 - **Engine-substrate caveat (which `System.Activities.*` types are usable):**
-  [`reference/web-research.md` §1](../../reference/web-research.md#1-engine-substrate--whats-wf4-and-whats-not)
+  [`reference/web-research.md` §1](../dataverse-classic-workflow/reference/web-research.md#1-engine-substrate--whats-wf4-and-whats-not)
 - **WF4-vs-Classic-Workflow custom-activity binding rules:**
-  [`reference/web-research.md` §9](../../reference/web-research.md#9-custom-workflow-activities--the-binding-rules)
+  [`reference/web-research.md` §9](../dataverse-classic-workflow/reference/web-research.md#9-custom-workflow-activities--the-binding-rules)
 
 ---
 
@@ -251,7 +259,7 @@ Skip the attribute. The user will:
 
 After the activity ships, a Classic Workflow XAML calls it via
 `mxswa:ActivityReference`. Provide the snippet so
-[`write-workflow`](../write-workflow/SKILL.md) can insert it cleanly. Include:
+[`write-workflow`](../dataverse-classic-write/SKILL.md) can insert it cleanly. Include:
 
 - The `AssemblyQualifiedName` (`Namespace.Class, AssemblyName, Version=…, Culture=neutral, PublicKeyToken=…`).
 - An `Arguments` block matching the activity's `[Input]`/`[Output]` names.
@@ -469,7 +477,7 @@ Input: a string and a start position (and optional length). Output: the
 substring. Demonstrates `[RequiredArgument]`, optional `int` input,
 defensive bounds-checking, and `Failed`/`FailureMessage` recovery.
 
-See [`examples/custom-activity-substring.cs`](../../examples/custom-activity-substring.cs)
+See [`examples/custom-activity-substring.cs`](../dataverse-classic-workflow/examples/custom-activity-substring.cs)
 for the full source.
 
 ---
@@ -488,5 +496,5 @@ for the full source.
 | Long-running external calls | Workflow activities run **inline** within the workflow step. Network latency translates directly to user-perceived slowness for real-time workflows and to AsyncOperation latency for background ones. Set conservative timeouts. |
 | Hidden config (reading app settings, env vars) | Sandbox isolation forbids `System.Configuration.ConfigurationManager`. Pass config in as input parameters or store it in a Dataverse table. |
 
-See [`reference/web-research.md` §9](../../reference/web-research.md#9-custom-workflow-activities--the-binding-rules)
+See [`reference/web-research.md` §9](../dataverse-classic-workflow/reference/web-research.md#9-custom-workflow-activities--the-binding-rules)
 for the cited Learn passages behind each of these.

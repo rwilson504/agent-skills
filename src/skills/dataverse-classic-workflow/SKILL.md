@@ -1,9 +1,9 @@
 ---
 name: dataverse-classic-workflow
-description: Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Use when user says "what does this workflow do", "summarize this workflow", "diff workflows", "edit this workflow XAML", "add a step to this workflow", "clone this workflow", "copy via Process Template", "scaffold a custom workflow activity", "write a C# workflow step", "publish this workflow", or works with `mxswa:`/`mcwc:` activities, `[bracket]` VB.NET expressions, `pac solution clone/unpack/pack/import`, or spkl `[CrmPluginRegistration]`. Covers XAML round-trip-safe edits, ConditionSequence nesting, UserData/VisualBasicValue preservation, the Process Template clone workaround for the "Activate" bug, custom activity scaffolding (.NET 4.6.2 + Microsoft.CrmSdk.Workflow), and PAC CLI publishing. Do NOT use for Power Automate cloud flows, Business Process Flows (category=4), Business Rules (category=2), or Dataverse plugin development.
+description: 'Foundations and shared reference for Microsoft Dataverse Classic Workflows - the WF4/XAML `workflow` table (category=0), not Power Automate cloud flows. Load this first for any classic-workflow task, then the task-specific skill. Use when user mentions a classic workflow, `mxswa:` or `mcwc:` activities, `mxswa:ActivityReference`, `[bracket]` VB.NET expressions, `UserData` or `mva:VisualBasicValue` blobs, WF4 XAML anatomy, trigger / scope / run-as semantics, the async job lifecycle, or asks which Microsoft Learn page documents a classic-workflow limit. Task skills: dataverse-classic-read, -analyze, -compare, -copy, -write, -custom-activity, -publish. Do NOT use for Power Automate cloud flows, Business Process Flows (category=4), Business Rules (category=2), or Dataverse plugin development.'
 license: MIT-0
-version: 1.0.1
-metadata: { "author": "rwilson504", "version": "1.0.1", "category": "development", "tags": ["dataverse", "power-platform", "classic-workflow", "workflow-foundation", "wf4", "xaml", "codeactivity", "pac-cli"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/dataverse-classic-workflow", "emoji": "🔄" } }
+version: 1.1.0
+metadata: { "author": "rwilson504", "version": "1.1.0", "category": "development", "tags": ["dataverse", "power-platform", "classic-workflow", "workflow-foundation", "wf4", "xaml", "codeactivity", "pac-cli"], "openclaw": { "homepage": "https://github.com/rwilson504/agent-skills/tree/main/dataverse-classic-workflow", "emoji": "🔄" } }
 ---
 
 # Dataverse Classic Workflow
@@ -16,7 +16,7 @@ been extracted from a Dataverse solution into a local repository.
 You are **not** an expert on Power Automate cloud flows, Business Process Flows,
 Business Rules, or Plugin development. If asked, redirect.
 
-**Sub-skills:** [read-workflow](skills/read-workflow/SKILL.md) | [analyze-workflow](skills/analyze-workflow/SKILL.md) | [compare-workflows](skills/compare-workflows/SKILL.md) | [copy-workflow](skills/copy-workflow/SKILL.md) | [write-workflow](skills/write-workflow/SKILL.md) | [write-custom-activity](skills/write-custom-activity/SKILL.md) | [publish-workflow](skills/publish-workflow/SKILL.md)
+**Task skills:** [dataverse-classic-read](../dataverse-classic-read/SKILL.md) | [dataverse-classic-analyze](../dataverse-classic-analyze/SKILL.md) | [dataverse-classic-compare](../dataverse-classic-compare/SKILL.md) | [dataverse-classic-copy](../dataverse-classic-copy/SKILL.md) | [dataverse-classic-write](../dataverse-classic-write/SKILL.md) | [dataverse-classic-custom-activity](../dataverse-classic-custom-activity/SKILL.md) | [dataverse-classic-publish](../dataverse-classic-publish/SKILL.md)
 
 **Reference docs:** [xaml-anatomy](reference/xaml-anatomy.md) | [activity-types](reference/activity-types.md) | [vb-expressions](reference/vb-expressions.md) | [trigger-types](reference/trigger-types.md) | [web-research](reference/web-research.md) | [example-workflow.xaml](reference/example-workflow.xaml)
 
@@ -69,19 +69,18 @@ before any XAML-touching task.
 
 ## How to route a request
 
-Before doing work, decide which **sub-skill** applies. Each sub-skill is a
-`SKILL.md` file with a step-by-step procedure. Read the sub-skill before
-executing.
+Each task below is its own skill, loadable on its own. They all assume the
+foundations in this file, so read this first, then the task skill.
 
-| User intent | Sub-skill to load |
-|-------------|-------------------|
-| "What does this workflow do?" / "Summarize this workflow" / "Extract trigger info" | [read-workflow](skills/read-workflow/SKILL.md) |
-| "I have new requirements — what do I need to change?" / "Gap analysis against requirements" | [analyze-workflow](skills/analyze-workflow/SKILL.md) |
-| "What changed between version A and B?" / "Diff these two workflows" | [compare-workflows](skills/compare-workflows/SKILL.md) |
-| "Make a copy of this workflow" / "Clone via Process Template" / "Fork this workflow as a starting point" | [copy-workflow](skills/copy-workflow/SKILL.md) |
-| "Add / remove / modify a step" / "Change a condition" / "Edit XAML safely" | [write-workflow](skills/write-workflow/SKILL.md) |
-| "Create a custom workflow activity" / "Scaffold a `CodeActivity` class" / "I need a new C# step that does X" | [write-custom-activity](skills/write-custom-activity/SKILL.md) |
-| "Activate / deactivate" / "Import / export solution" / "Push to my org" | [publish-workflow](skills/publish-workflow/SKILL.md) |
+| User intent | Skill to load |
+|-------------|---------------|
+| "What does this workflow do?" / "Summarize this workflow" / "Extract trigger info" | [dataverse-classic-read](../dataverse-classic-read/SKILL.md) |
+| "I have new requirements — what do I need to change?" / "Gap analysis against requirements" | [dataverse-classic-analyze](../dataverse-classic-analyze/SKILL.md) |
+| "What changed between version A and B?" / "Diff these two workflows" | [dataverse-classic-compare](../dataverse-classic-compare/SKILL.md) |
+| "Make a copy of this workflow" / "Clone via Process Template" / "Fork this workflow as a starting point" | [dataverse-classic-copy](../dataverse-classic-copy/SKILL.md) |
+| "Add / remove / modify a step" / "Change a condition" / "Edit XAML safely" | [dataverse-classic-write](../dataverse-classic-write/SKILL.md) |
+| "Create a custom workflow activity" / "Scaffold a `CodeActivity` class" / "I need a new C# step that does X" | [dataverse-classic-custom-activity](../dataverse-classic-custom-activity/SKILL.md) |
+| "Activate / deactivate" / "Import / export solution" / "Push to my org" | [dataverse-classic-publish](../dataverse-classic-publish/SKILL.md) |
 
 When in doubt, **read first, recommend second, edit third, publish last** — and
 always confirm before destructive operations.
@@ -107,7 +106,7 @@ always confirm before destructive operations.
    the workflow record's `category` field if available, or check XAML root
    namespaces: a classic workflow uses `mxswa:Workflow` as the root activity.
 
-3. **Load the relevant sub-skill** by reading its `SKILL.md`.
+3. **Load the relevant task skill** by reading its `SKILL.md`.
 
 4. **Cite the reference docs** when the user asks "why" — never assert behavior
    without grounding in the reference docs or Microsoft Learn.
@@ -148,7 +147,7 @@ say so plainly. Don't invent syntax.
 - **Confirm the target environment** by name (or auth profile) before any
   import. A wrong-env push is unrecoverable in production.
 - **Solutions, not bare workflows.** The supported way to move a workflow
-  between environments is via a solution. The `publish-workflow` sub-skill
+  between environments is via a solution. The `dataverse-classic-publish` skill
   walks through this.
 - **Activate explicitly.** Importing a solution does not auto-activate
   workflows. After import, run the activation step.
@@ -211,7 +210,7 @@ This is critical because users frequently share these chats.
   `publish-workflow` requires PAC CLI + auth.
 - **Generic examples only** — every example in this pack uses standard
   Microsoft sample entity names (`account`, `contact`, `sample_widget`).
-  Bring your own entities; the sub-skills will adapt.
+  Bring your own entities; the task skills will adapt.
 
 ---
 
@@ -223,7 +222,7 @@ This is critical because users frequently share these chats.
   (category=4). Out of scope.
 - **Business Rules** — different category (category=2). Out of scope.
 - **Compiling / deploying custom workflow activity assemblies** — the
-  [write-custom-activity](skills/write-custom-activity/SKILL.md) sub-skill
+  [dataverse-classic-custom-activity](../dataverse-classic-custom-activity/SKILL.md) skill
   scaffolds the C# class and registration metadata, but does not deploy
   the compiled assembly. Use `spkl` or `pac tool prt` for that.
 - **General Dataverse plugin development** — out of scope.
