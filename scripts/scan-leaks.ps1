@@ -129,7 +129,14 @@ $regexPatterns = @(
     [pscustomobject]@{
         Id      = 'public-ipv4'
         Pattern = '\b(?:\d{1,3}\.){3}\d{1,3}\b'
-        Accept  = { param($m) Get-IsPublicIpv4 -Ip $m }
+        # Assembly identities and NuGet versions are dotted quads too
+        # (Version=4.0.0.0, Version="9.0.2.45") and blocked real promotions.
+        Accept  = {
+            param($m, $line)
+            if (-not (Get-IsPublicIpv4 -Ip $m)) { return $false }
+            $versionish = '(?i)(version\s*[=:]|publickeytoken|packagereference|\bnuget\b|assemblyversion|\bv' + [regex]::Escape($m) + ')'
+            return ($line -notmatch $versionish)
+        }
     }
 )
 
@@ -194,7 +201,9 @@ if (-not $SkipRegex) {
                     $matches = [regex]::Matches($line, $rule.Pattern)
                     foreach ($m in $matches) {
                         $token = $m.Value
-                        $accept = & $rule.Accept $token
+                        # Second arg lets a rule judge the surrounding context;
+                        # single-param callbacks simply ignore it.
+                        $accept = & $rule.Accept $token $line
                         if (-not $accept) { continue }
                         $rel = $f.FullName
                         if ($rel.StartsWith($RepoRoot, [System.StringComparison]::OrdinalIgnoreCase)) {

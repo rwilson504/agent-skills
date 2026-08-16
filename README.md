@@ -31,21 +31,22 @@ The Power Platform custom connector skills enable the creation of custom connect
 - Building connectors for proprietary or third-party services
 - Enabling low-code/no-code integration solutions
 
-### n8n Node Development
+### n8n
 
-The n8n node development skills facilitate the creation of custom nodes for the n8n workflow automation platform.
+A five-skill bundle plus an orchestrator agent covering the whole n8n workflow-automation lifecycle. Installed as a single `n8n` plugin; the agent routes to the right skill for the task at hand.
 
-**Key Capabilities:**
-- Creating new n8n community nodes
-- Implementing node operations and resources
-- Configuring node parameters and credentials
-- Testing nodes locally
-- Preparing nodes for community publication
+**Skills in the bundle:**
+- `n8n-build-workflow` — design and author workflow JSON (triggers, flow logic, expressions, AI cluster nodes, sub-workflows)
+- `n8n-debug-workflow` — diagnose failing executions (error catalog, item-linking forensics, rate limits, resilience patterns)
+- `n8n-code-node` — JavaScript and Python in the Code node (run modes, pairedItem, Luxon, JMESPath, Pyodide)
+- `n8n-create-nodes` — build community nodes as npm packages (declarative and programmatic styles, credentials, triggers)
+- `n8n-self-host` — install and operate self-hosted n8n (Docker Compose, queue mode, Postgres, backups, upgrades)
 
 **Use Cases:**
-- Adding support for new services in n8n
-- Creating specialized automation nodes
-- Contributing to the n8n open-source ecosystem
+- Turning a requirement into a runnable, import-ready workflow
+- Debugging an execution that fails only in production
+- Adding support for a new service by publishing a community node
+- Standing up and scaling a self-hosted instance
 
 ### Dataverse Classic Workflow
 
@@ -66,6 +67,23 @@ The Dataverse Classic Workflow skill covers WF4/XAML-based classic workflows (th
 - Authoring new C# workflow activity assemblies that XAML can call via `mxswa:ActivityReference`
 - Cross-environment promotion (DEV → TEST → PROD) of workflow solutions
 - Air-gapped environments (Online, on-premises, GCC, GCC-High, DoD) — no live env required for read/analyze/compare/edit
+
+### XrmToolBox Plugin Development
+
+Build, debug, and ship XrmToolBox tools — WinForms `UserControl`s hosted in the XrmToolBox shell that talk to Dataverse / Dynamics 365 CE. Ships with an orchestrator agent alongside the skill.
+
+**Key Capabilities:**
+- Scaffold `PluginBase` / `PluginControlBase` classes and wire `ExportMetadata`
+- Call `IOrganizationService` correctly via `ExecuteMethod` + `WorkAsync` so the UI never freezes
+- Implement the optional interfaces (`IGitHubPlugin`, `IHelpPlugin`, `IStatusBarMessenger`, `IMessageBusHost`, `IAboutPlugin`, `ISettingsPlugin`, `IShortcutReceiver`)
+- Set up Visual Studio debugging — post-build copy, `.csproj.user` launch settings, `/overridepath`, `/connection`, `/plugin`
+- Store secrets with DPAPI vs `CryptoManager`
+- Package and distribute via NuGet to the Tool Library
+
+**Use Cases:**
+- Starting a new XrmToolBox tool from scratch
+- Getting breakpoints working, including on Windows-on-ARM (ARM64 cannot debug .NET Framework in VS Code — use Visual Studio 2022)
+- Preparing an existing tool for publication
 
 ## 🚀 Getting Started
 
@@ -104,8 +122,9 @@ copilot plugin marketplace add rwilson504/agent-skills
 
 # 2. Install one or more plugins from the marketplace
 copilot plugin install power-platform-custom-connector@agent-skills
-copilot plugin install n8n-create-nodes@agent-skills
+copilot plugin install n8n@agent-skills
 copilot plugin install dataverse-classic-workflow@agent-skills
+copilot plugin install xrmtoolbox-plugin-dev@agent-skills
 
 # 3. (Optional) List what's installed and check for updates
 copilot plugin list
@@ -121,9 +140,14 @@ Install skills directly from GitHub using the Claude Code CLI:
 ```bash
 # Install a specific skill
 claude install-github-skill rwilson504/agent-skills/power-platform-custom-connector
-claude install-github-skill rwilson504/agent-skills/n8n-create-nodes
+claude install-github-skill rwilson504/agent-skills/n8n-build-workflow
 claude install-github-skill rwilson504/agent-skills/dataverse-classic-workflow
+claude install-github-skill rwilson504/agent-skills/xrmtoolbox-plugin-dev
 ```
+
+Copilot CLI installs **plugins** (4 of them); Claude Code and ClawHub install
+individual **skills** (8 of them). The five `n8n-*` skills are installable one
+by one here, but arrive together as the `n8n` plugin above.
 
 After installation, the skill's instructions are automatically available in your Claude Code sessions.
 
@@ -137,8 +161,9 @@ Each skill is published to the [ClawHub](https://clawhub.ai) registry under the 
 
 # Install any of the skills directly from ClawHub
 openclaw skills install power-platform-custom-connector
-openclaw skills install n8n-create-nodes
+openclaw skills install n8n-build-workflow
 openclaw skills install dataverse-classic-workflow
+openclaw skills install xrmtoolbox-plugin-dev
 
 # Update installed skills later
 openclaw skills update --all
@@ -222,83 +247,70 @@ Or download individual skill packages from the [latest release](https://github.c
 
 ```
 agent-skills/
+├── plugins.yml                          # Composition manifest: which skills/agents form each plugin
+├── src/                                 # CANONICAL source. Edit here only.
+│   ├── agents/                          # <name>.agent.md orchestrators
+│   │   ├── n8n.agent.md
+│   │   └── xrmtoolbox-plugin-dev.agent.md
+│   └── skills/                          # <name>/SKILL.md + supporting files
+│       ├── dataverse-classic-workflow/  # orchestrator + reference/ + skills/ (7 sub-skills)
+│       ├── n8n-build-workflow/
+│       ├── n8n-code-node/
+│       ├── n8n-create-nodes/
+│       ├── n8n-debug-workflow/
+│       ├── n8n-self-host/
+│       ├── power-platform-custom-connector/
+│       └── xrmtoolbox-plugin-dev/
+├── plugins/                             # GENERATED by scripts/build-plugins.ps1. Never edit by hand.
+│   ├── dataverse-classic-workflow/
+│   ├── n8n/                             # agent + all five n8n skills
+│   ├── power-platform-custom-connector/
+│   └── xrmtoolbox-plugin-dev/
+├── scripts/
+│   ├── build-plugins.ps1                # src/ + plugins.yml -> plugins/
+│   ├── lint.ps1                         # frontmatter, version coherence, src/->plugins/ drift
+│   ├── promote-skill.ps1                # import a skill/agent from the private source repo
+│   ├── scan-leaks.ps1                   # gitleaks + sensitivity regex, run before promotion
+│   └── bump-skill-version.mjs           # bump SKILL.md + plugins.yml versions together
 ├── .github/
 │   ├── instructions/
-│   │   └── skill-frontmatter.instructions.md   # Frontmatter convention applyTo: '**/SKILL.md'
+│   │   └── skill-frontmatter.instructions.md   # Frontmatter convention, applyTo '**/SKILL.md'
 │   ├── plugin/
-│   │   └── marketplace.json             # Copilot CLI marketplace registry (lists all plugins)
+│   │   └── marketplace.json             # GENERATED. Copilot CLI marketplace registry.
 │   └── workflows/
 │       ├── release.yml                  # CI: build + publish zip releases on v* tags
-│       └── clawhub-publish.yml          # CI: publish skills to ClawHub on workflow_dispatch
-├── n8n-create-nodes/                    # n8n node development skill
-│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
-│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
-│   ├── SKILL.md                         # Main skill instructions
-│   ├── references/                      # Detailed reference docs (loaded on demand)
-│   │   ├── CREDENTIAL_PATTERNS.md       # Credential implementation patterns
-│   │   ├── TRIGGER_PATTERNS.md          # Trigger node patterns
-│   │   ├── EXAMPLES.md                  # Full examples
-│   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
-│   └── evaluations/                     # Test scenarios
-├── power-platform-custom-connector/     # Power Platform connector skill
-│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
-│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
-│   ├── SKILL.md                         # Main skill instructions
-│   ├── references/                      # Detailed reference docs (loaded on demand)
-│   │   ├── AUTH_PATTERNS.md             # Authentication patterns
-│   │   ├── OPENAPI_EXTENSIONS.md        # x-ms-* OpenAPI extensions
-│   │   ├── POLICY_TEMPLATES.md          # Policy template reference
-│   │   ├── CUSTOM_CODE.md              # Custom code (script.csx)
-│   │   ├── WEBHOOK_TRIGGERS.md          # Webhook trigger patterns
-│   │   ├── CERTIFICATION.md            # Certification workflows & submission
-│   │   ├── EXAMPLES.md                  # Full examples
-│   │   └── COMMON_MISTAKES.md           # Common mistakes and fixes
-│   └── evaluations/                     # Test scenarios
-├── dataverse-classic-workflow/          # Dataverse Classic Workflow (WF4/XAML) skill bundle
-│   ├── .clawhubignore                   # Files excluded from ClawHub publish bundle
-│   ├── .github/plugin/plugin.json       # Copilot CLI plugin manifest
-│   ├── SKILL.md                         # Top-level orchestrator + routing table to sub-skills
-│   ├── reference/                       # Shared knowledge base (cited by every sub-skill)
-│   │   ├── xaml-anatomy.md              # WF4 XAML structure, namespaces, ActivityReference
-│   │   ├── activity-types.md            # mxswa:* / mcwc:* activity catalog
-│   │   ├── vb-expressions.md            # bracket [expr] dynamic value patterns
-│   │   ├── trigger-types.md             # TriggerType, Scope, Mode, RunAs reference
-│   │   ├── web-research.md              # MS Learn citations + AsyncOperation states + best practices
-│   │   └── example-workflow.xaml        # one anonymized end-to-end example
-│   ├── examples/                        # Worked code examples
-│   │   └── custom-activity-substring.cs # CodeActivity scaffold (anonymized)
-│   └── skills/                          # 7 sub-skills, each with its own SKILL.md
-│       ├── read-workflow/               # parse + summarize a workflow
-│       ├── analyze-workflow/            # gap-analyze against requirements
-│       ├── compare-workflows/           # diff two workflow XAML files
-│       ├── copy-workflow/               # clone via Process Template (with gotchas)
-│       ├── write-workflow/              # round-trip-safe XAML edits
-│       ├── write-custom-activity/       # scaffold C# CodeActivity assemblies
-│       └── publish-workflow/            # activate / import / export via PAC CLI
-├── build.sh                             # Build script (bash)
-└── build.ps1                            # Build script (PowerShell)
+│       ├── release-on-merge.yml
+│       └── clawhub-publish.yml          # CI: publish skills to ClawHub (workflow_dispatch)
+├── build.sh                             # Release packaging (bash)
+└── build.ps1                            # Release packaging (PowerShell)
 ```
+
+> Skills and agents are authored in the private upstream repo and copied here by
+> `scripts/promote-skill.ps1`. Edit `src/` here only when the change is specific
+> to this repo's packaging; content changes belong upstream.
 
 ## 🔧 Usage
 
 ### Creating a Power Platform Custom Connector
 
-1. Navigate to the `power-platform-custom-connector/` directory
-2. Start with `SKILL.md` for the main instructions
-3. Reference files in `references/` (e.g., `AUTH_PATTERNS.md`, `OPENAPI_EXTENSIONS.md`) as needed
+1. Open `src/skills/power-platform-custom-connector/SKILL.md` for the main instructions
+2. Reference files in `references/` (e.g., `AUTH_PATTERNS.md`, `OPENAPI_EXTENSIONS.md`) as needed
 
-### Creating an n8n Community Node
+### Working with n8n
 
-1. Navigate to the `n8n-create-nodes/` directory
-2. Start with `SKILL.md` for the main instructions
-3. Reference files in `references/` (e.g., `CREDENTIAL_PATTERNS.md`, `TRIGGER_PATTERNS.md`) as needed
+1. Install the `n8n` plugin — the agent routes to the right skill for the task
+2. Or open the skill directly under `src/skills/n8n-<build-workflow|debug-workflow|code-node|create-nodes|self-host>/SKILL.md`
 
 ### Working with a Dataverse Classic Workflow
 
-1. Navigate to the `dataverse-classic-workflow/` directory
-2. Start with `SKILL.md` — it routes to the right sub-skill based on user intent
-3. Sub-skills live in `skills/<name>/SKILL.md`; the shared knowledge base lives in `reference/`
-4. The `examples/` folder contains a fully anonymized custom workflow activity scaffold
+1. Open `src/skills/dataverse-classic-workflow/SKILL.md` — it routes to the right sub-skill based on user intent
+2. Sub-skills live in `skills/<name>/SKILL.md`; the shared knowledge base lives in `reference/`
+3. The `examples/` folder contains a fully anonymized custom workflow activity scaffold
+
+### Building an XrmToolBox Tool
+
+1. Install the `xrmtoolbox-plugin-dev` plugin, or open `src/skills/xrmtoolbox-plugin-dev/SKILL.md`
+2. The bundled agent enforces the `ExecuteMethod` → `WorkAsync` rule that keeps the shell responsive
 
 ## 📦 Distribution
 
@@ -318,11 +330,12 @@ The publish pipeline lives in [.github/workflows/clawhub-publish.yml](.github/wo
 
 Pre-built zip packages are published on the [Releases](https://github.com/rwilson504/agent-skills/releases) page for agents that don't speak the Copilot CLI plugin protocol or use the ClawHub registry (Cursor, Windsurf, manual installs, air-gapped environments, etc.).
 
-Each release includes:
-- **agent-skills-v\<version\>.zip** — Complete bundle with all skills
-- **n8n-create-nodes-v\<version\>.zip** — n8n skill only
-- **power-platform-custom-connector-v\<version\>.zip** — Power Platform skill only
-- **dataverse-classic-workflow-v\<version\>.zip** — Dataverse Classic Workflow skill only
+Each release includes one zip per plugin, plus a bundle:
+- **agent-skills-v\<version\>.zip** — Complete bundle with all plugins
+- **n8n-v\<version\>.zip** — n8n agent + all five n8n skills
+- **power-platform-custom-connector-v\<version\>.zip**
+- **dataverse-classic-workflow-v\<version\>.zip**
+- **xrmtoolbox-plugin-dev-v\<version\>.zip**
 
 ### 4. Building Locally
 

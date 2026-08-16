@@ -111,6 +111,15 @@ if (Test-Path $srcSkills) {
         } else {
             $skillVersions[$name] = $version
         }
+        # The Copilot CLI hard-rejects descriptions over 1024 chars and says so
+        # only at the end of `copilot skill list`, so an over-long skill looks
+        # installed and simply never loads.
+        $description = Get-FrontmatterField -FilePath $skillFile -Field 'description'
+        if (-not $description) {
+            Add-Err "[skill:$name] SKILL.md frontmatter missing 'description:' field"
+        } elseif ($description.Length -gt 1024) {
+            Add-Err "[skill:$name] description is $($description.Length) chars; Copilot CLI rejects over 1024"
+        }
     }
 } else {
     Add-Err "src/skills/ directory not found"
