@@ -46,7 +46,7 @@ plugins:
 
   n8n:
     description: Full n8n agent bundle — orchestrator agent plus all five n8n skills (build/debug/code-node/self-host/community-nodes). Drives a continuous-learning loop that captures each session's discoveries back into the skill bundle.
-    version: 1.0.0
+    version: 1.0.1
     license: MIT
     category: development
     homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/n8n
