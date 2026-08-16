@@ -1,0 +1,31 @@
+{
+  "name": "xrmtoolbox-plugin-dev",
+  "description": "Build, debug, and ship XrmToolBox plugins (tools) for Dataverse / Dynamics 365 CE. Covers PluginBase/PluginControlBase scaffolding, ExportMetadata, ExecuteMethod + WorkAsync, the optional plugin interfaces, Visual Studio debug setup (including Windows-on-ARM), secret storage, and NuGet packaging to the Tool Library.",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/xrmtoolbox-plugin-dev",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "xrmtoolbox",
+    "dataverse",
+    "dynamics-365",
+    "winforms",
+    "plugin-development",
+    "csharp"
+  ],
+  "tags": [
+    "xrmtoolbox",
+    "dataverse",
+    "dynamics-365",
+    "winforms",
+    "plugin-development",
+    "csharp"
+  ],
+  "agents": "agents/",
+  "skills": "skills/"
+}

@@ -45,82 +45,6 @@
       "license": "MIT"
     },
     {
-      "name": "n8n-build-workflow",
-      "source": "plugins/n8n-build-workflow",
-      "description": "Design and author n8n workflow JSON — triggers, flow logic (IF/Switch/Merge/Loop), expressions, AI workflows (LangChain cluster nodes), sub-workflows, and the array-of-items data model. Emits import-ready JSON.",
-      "version": "1.0.0",
-      "keywords": [
-        "n8n",
-        "workflow",
-        "automation",
-        "ai-workflows",
-        "low-code"
-      ],
-      "category": "development",
-      "license": "MIT"
-    },
-    {
-      "name": "n8n-code-node",
-      "source": "plugins/n8n-code-node",
-      "description": "Write correct JavaScript or Python in the n8n Code node. Covers both run modes, the canonical pairedItem-preserving pattern, binary helpers, Luxon and JMESPath, the Pyodide runtime, and AI Code Tools.",
-      "version": "1.0.0",
-      "keywords": [
-        "n8n",
-        "code-node",
-        "javascript",
-        "python",
-        "pyodide"
-      ],
-      "category": "development",
-      "license": "MIT"
-    },
-    {
-      "name": "n8n-create-nodes",
-      "source": "plugins/n8n-create-nodes",
-      "description": "Build production-ready n8n community nodes as npm packages. Covers declarative (REST API wrapping) and programmatic (custom logic) node styles, credential types, webhook/poll triggers, versioned nodes, and publishing to the n8n community.",
-      "version": "1.0.1",
-      "keywords": [
-        "n8n",
-        "community-nodes",
-        "node-development",
-        "npm-package",
-        "workflow-sdk"
-      ],
-      "category": "development",
-      "license": "MIT"
-    },
-    {
-      "name": "n8n-debug-workflow",
-      "source": "plugins/n8n-debug-workflow",
-      "description": "Diagnose failing n8n executions. Indexed error catalog, item-linking forensics, rate-limit recovery, trigger debugging (Webhook/Schedule/App), and resilience patterns (retryOnFail, continueOnFail, Error Workflows).",
-      "version": "1.0.0",
-      "keywords": [
-        "n8n",
-        "debugging",
-        "troubleshooting",
-        "error-handling",
-        "rate-limits"
-      ],
-      "category": "development",
-      "license": "MIT"
-    },
-    {
-      "name": "n8n-self-host",
-      "source": "plugins/n8n-self-host",
-      "description": "Install, configure, and operate self-hosted n8n. Day-0 production checklist, Docker Compose (single + queue mode), reverse-proxy configs, Postgres setup and SQLite migration, encryption-key handling, backups, and upgrades.",
-      "version": "1.0.0",
-      "keywords": [
-        "n8n",
-        "self-hosted",
-        "docker",
-        "queue-mode",
-        "hosting",
-        "postgres"
-      ],
-      "category": "development",
-      "license": "MIT"
-    },
-    {
       "name": "power-platform-custom-connector",
       "source": "plugins/power-platform-custom-connector",
       "description": "Build Power Platform custom connectors (Independent Publisher and Verified Publisher) ready for Microsoft certification. Covers Swagger 2.0 / OpenAPI definitions, all 5 authentication types, the 13 policy templates, C# custom code (script.csx), webhook triggers, dynamic values/lists, Copilot Studio AI extensions, and the full certification submission workflow.",
@@ -133,6 +57,22 @@
         "power-automate",
         "power-apps",
         "copilot-studio"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
+      "name": "xrmtoolbox-plugin-dev",
+      "source": "plugins/xrmtoolbox-plugin-dev",
+      "description": "Build, debug, and ship XrmToolBox plugins (tools) for Dataverse / Dynamics 365 CE. Covers PluginBase/PluginControlBase scaffolding, ExportMetadata, ExecuteMethod + WorkAsync, the optional plugin interfaces, Visual Studio debug setup (including Windows-on-ARM), secret storage, and NuGet packaging to the Tool Library.",
+      "version": "1.0.0",
+      "keywords": [
+        "xrmtoolbox",
+        "dataverse",
+        "dynamics-365",
+        "winforms",
+        "plugin-development",
+        "csharp"
       ],
       "category": "development",
       "license": "MIT"
