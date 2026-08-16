@@ -120,6 +120,26 @@ if (Test-Path $srcSkills) {
         } elseif ($description.Length -gt 1024) {
             Add-Err "[skill:$name] description is $($description.Length) chars; Copilot CLI rejects over 1024"
         }
+
+        # ClawHub force-publishes everything as MIT-0 and refuses per-skill
+        # overrides, so anything else here is a lie about what ships.
+        $license = Get-FrontmatterField -FilePath $skillFile -Field 'license'
+        if (-not $license) {
+            Add-Err "[skill:$name] SKILL.md frontmatter missing 'license:' field (expected MIT-0)"
+        } elseif ($license -ne 'MIT-0') {
+            Add-Err "[skill:$name] license '$license' != MIT-0"
+        }
+
+        # OpenClaw's loader silently drops multi-line mappings under metadata,
+        # and its YAML parser rejects surrogate-pair \uXXXX\uXXXX escapes
+        # outright - emoji above the BMP must be literal characters.
+        $fmBlock = if ($content -match '^---\s*\r?\n([\s\S]*?)\r?\n---') { $Matches[1] } else { '' }
+        if ($fmBlock -notmatch '(?m)^metadata:\s*\{.*\}\s*$') {
+            Add-Err "[skill:$name] 'metadata:' must be a single-line JSON object"
+        }
+        if ($fmBlock -match '\\u[dD][89abAB][0-9a-fA-F]{2}') {
+            Add-Err "[skill:$name] frontmatter has a surrogate-pair \u escape; use the literal character"
+        }
     }
 } else {
     Add-Err "src/skills/ directory not found"

@@ -273,8 +273,6 @@ agent-skills/
 │   ├── scan-leaks.ps1                   # gitleaks + sensitivity regex, run before promotion
 │   └── bump-skill-version.mjs           # bump SKILL.md + plugins.yml versions together
 ├── .github/
-│   ├── instructions/
-│   │   └── skill-frontmatter.instructions.md   # Frontmatter convention, applyTo '**/SKILL.md'
 │   ├── plugin/
 │   │   └── marketplace.json             # GENERATED. Copilot CLI marketplace registry.
 │   └── workflows/
