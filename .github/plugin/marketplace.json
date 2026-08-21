@@ -11,6 +11,22 @@
   },
   "plugins": [
     {
+      "name": "3dprint",
+      "source": "plugins/3dprint",
+      "description": "3D print operator - Bambu Lab P2S printer, Bambu Studio slicer, .3mf project format and templating, and project scaffolding.",
+      "version": "1.0.0",
+      "keywords": [
+        "3dprint",
+        "bambu",
+        "p2s",
+        "slicer",
+        "3mf",
+        "fdm"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
       "name": "cad",
       "source": "plugins/cad",
       "description": "CAD authoring with build123d — parametric modeling, reverse engineering, OpenSCAD porting, render/print workflows.",

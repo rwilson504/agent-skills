@@ -1,0 +1,31 @@
+{
+  "name": "3dprint",
+  "description": "3D print operator - Bambu Lab P2S printer, Bambu Studio slicer, .3mf project format and templating, and project scaffolding.",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/3dprint",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "3dprint",
+    "bambu",
+    "p2s",
+    "slicer",
+    "3mf",
+    "fdm"
+  ],
+  "tags": [
+    "3dprint",
+    "bambu",
+    "p2s",
+    "slicer",
+    "3mf",
+    "fdm"
+  ],
+  "agents": "agents/",
+  "skills": "skills/"
+}

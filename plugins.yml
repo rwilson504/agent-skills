@@ -173,3 +173,25 @@ plugins:
       - cad-render-images
       - cad-reverse-engineer-stl
       - cad-terminal-viewer
+
+  3dprint:
+    description: 3D print operator - Bambu Lab P2S printer, Bambu Studio slicer, .3mf project format and templating, and project scaffolding.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/3dprint
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - 3dprint
+      - bambu
+      - p2s
+      - slicer
+      - 3mf
+      - fdm
+    agents:
+      - 3d-print-operator
+    skills:
+      - print-bambu-p2s
+      - print-bambu-studio
+      - print-bambu-3mf
+      - print-project-new
