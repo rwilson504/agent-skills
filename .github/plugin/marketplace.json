@@ -11,6 +11,21 @@
   },
   "plugins": [
     {
+      "name": "cad",
+      "source": "plugins/cad",
+      "description": "CAD authoring with build123d — parametric modeling, reverse engineering, OpenSCAD porting, render/print workflows.",
+      "version": "1.0.0",
+      "keywords": [
+        "cad",
+        "build123d",
+        "parametric",
+        "3d",
+        "openscad"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
       "name": "dataverse-classic-workflow",
       "source": "plugins/dataverse-classic-workflow",
       "description": "Read, analyze, compare, edit, copy, and publish Microsoft Dataverse Classic Workflows (the WF4/XAML-based `workflow` table — not Power Automate cloud flows). Orchestrator agent plus seven task skills and a shared knowledge base.",

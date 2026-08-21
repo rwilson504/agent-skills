@@ -1,0 +1,29 @@
+{
+  "name": "cad",
+  "description": "CAD authoring with build123d — parametric modeling, reverse engineering, OpenSCAD porting, render/print workflows.",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/cad",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "cad",
+    "build123d",
+    "parametric",
+    "3d",
+    "openscad"
+  ],
+  "tags": [
+    "cad",
+    "build123d",
+    "parametric",
+    "3d",
+    "openscad"
+  ],
+  "agents": "agents/",
+  "skills": "skills/"
+}

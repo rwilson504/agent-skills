@@ -140,3 +140,36 @@ plugins:
       - streamdeck-oauth
       - streamdeck-profiles-localization
       - streamdeck-publishing
+
+  cad:
+    description: CAD authoring with build123d — parametric modeling, reverse engineering, OpenSCAD porting, render/print workflows.
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/cad
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - cad
+      - build123d
+      - parametric
+      - 3d
+      - openscad
+    agents:
+      - cad-builder
+    skills:
+      - cad-build123d-general
+      - cad-build123d-bd-warehouse
+      - cad-build123d-printed-threads
+      - cad-build123d-six-view-checks
+      - cad-build123d-tools
+      - cad-feature-inventory
+      - cad-glb-component-map
+      - cad-layout-map-2d
+      - cad-makerrepo
+      - cad-measurement-diagrams
+      - cad-partcad-repository
+      - cad-port-from-scad
+      - cad-print-3mf
+      - cad-render-images
+      - cad-reverse-engineer-stl
+      - cad-terminal-viewer

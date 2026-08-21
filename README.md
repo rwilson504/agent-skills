@@ -103,6 +103,25 @@ Build Elgato Stream Deck plugins end-to-end with the official `@elgato/streamdec
 - Connecting a plugin to Spotify, Twitch, Hue, GitHub or any OAuth2 provider
 - Getting a plugin through Maker Console review and shipped
 
+### CAD with build123d
+
+Code-first parametric CAD in Python — model, verify, reverse-engineer, render and export without ever opening a GUI CAD app. Ships with an orchestrator agent alongside sixteen skills.
+
+**Key Capabilities:**
+- Core build123d idioms and the OCCT gotchas that cause most modeling bugs
+- Parametric parts from the `bd_warehouse` library — fasteners, bearings, gears, threads
+- 3D-printable threads, thumbscrews and printed nuts tuned for FDM resolution
+- Reverse-engineer an existing STL or STEP back into parametric source
+- Port OpenSCAD scripts to build123d incrementally
+- Verification tooling — six-view orthographic checks, per-face feature inventories, annotated 2D layout maps, colour-tagged GLB component maps
+- Publication renders (hero, exploded, cutaway, turntable) and terminal previews
+- Mode-aware STL and `.3mf` export for the design / test / production workflow
+
+**Use Cases:**
+- Turning photos, sketches or caliper measurements into a parametric model
+- Rebuilding a downloaded STL you have no source for
+- Producing documentation renders and print-ready exports from the same script
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -334,6 +353,12 @@ agent-skills/
 2. Load `streamdeck-manifest` before writing code — the manifest is the contract, and `manifest.UUID` can never change once users have buttons bound to it
 3. For third-party APIs, `streamdeck-oauth` covers the Elgato redirect proxy, which works where custom URL schemes do not
 
+### Modeling a Part with build123d
+
+1. Install the `cad` plugin, or start from `src/skills/cad-build123d-general/SKILL.md` — load it before any other CAD skill
+2. The bundled agent is code-first by design: it will not recommend a GUI CAD app
+3. Rebuild and look at the result after every edit — `cad-build123d-six-view-checks` and `cad-feature-inventory` exist so you verify geometry instead of assuming it
+
 ## 📦 Distribution
 
 Skills can be consumed four ways — pick whichever fits your tooling:
@@ -414,6 +439,11 @@ Contributions are welcome! If you'd like to add new skills or improve existing o
 - [`@elgato/streamdeck` on npm](https://www.npmjs.com/package/@elgato/streamdeck)
 - [sdpi-components (property inspector UI)](https://sdpi-components.dev)
 - [Maker Console (Marketplace submission)](https://maker.elgato.com)
+
+### CAD
+- [build123d documentation](https://build123d.readthedocs.io/) — authoritative reference
+- [build123d cheat sheet](https://build123d.readthedocs.io/en/latest/cheat_sheet.html)
+- [PartCAD repository](https://partcad.org/repository) — community parts and assemblies
 
 ## 📄 License
 
