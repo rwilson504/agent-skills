@@ -62,6 +62,22 @@
       "license": "MIT"
     },
     {
+      "name": "streamdeck",
+      "source": "plugins/streamdeck",
+      "description": "Stream Deck Plugin Builder — author Elgato Stream Deck plugins end-to-end (manifest, actions, property inspector, OAuth via Elgato redirect proxy, profiles, localization, Marketplace packaging).",
+      "version": "1.0.0",
+      "keywords": [
+        "streamdeck",
+        "elgato",
+        "plugin",
+        "oauth",
+        "sdpi-components",
+        "marketplace"
+      ],
+      "category": "development",
+      "license": "MIT"
+    },
+    {
       "name": "xrmtoolbox-plugin-dev",
       "source": "plugins/xrmtoolbox-plugin-dev",
       "description": "Build, debug, and ship XrmToolBox plugins (tools) for Dataverse / Dynamics 365 CE. Covers PluginBase/PluginControlBase scaffolding, ExportMetadata, ExecuteMethod + WorkAsync, the optional plugin interfaces, Visual Studio debug setup (including Windows-on-ARM), secret storage, and NuGet packaging to the Tool Library.",

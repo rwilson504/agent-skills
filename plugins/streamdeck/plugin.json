@@ -1,0 +1,31 @@
+{
+  "name": "streamdeck",
+  "description": "Stream Deck Plugin Builder — author Elgato Stream Deck plugins end-to-end (manifest, actions, property inspector, OAuth via Elgato redirect proxy, profiles, localization, Marketplace packaging).",
+  "version": "1.0.0",
+  "author": {
+    "name": "rwilson504",
+    "url": "https://github.com/rwilson504"
+  },
+  "homepage": "https://github.com/rwilson504/agent-skills/tree/main/plugins/streamdeck",
+  "repository": "https://github.com/rwilson504/agent-skills",
+  "license": "MIT",
+  "category": "development",
+  "keywords": [
+    "streamdeck",
+    "elgato",
+    "plugin",
+    "oauth",
+    "sdpi-components",
+    "marketplace"
+  ],
+  "tags": [
+    "streamdeck",
+    "elgato",
+    "plugin",
+    "oauth",
+    "sdpi-components",
+    "marketplace"
+  ],
+  "agents": "agents/",
+  "skills": "skills/"
+}

@@ -113,3 +113,30 @@ plugins:
       - xrmtoolbox-plugin-dev
     skills:
       - xrmtoolbox-plugin-dev
+
+  streamdeck:
+    description: Stream Deck Plugin Builder — author Elgato Stream Deck plugins end-to-end (manifest, actions, property inspector, OAuth via Elgato redirect proxy, profiles, localization, Marketplace packaging).
+    version: 1.0.0
+    license: MIT
+    category: development
+    homepage: https://github.com/rwilson504/agent-skills/tree/main/plugins/streamdeck
+    repository: https://github.com/rwilson504/agent-skills
+    keywords:
+      - streamdeck
+      - elgato
+      - plugin
+      - oauth
+      - sdpi-components
+      - marketplace
+    agents:
+      - streamdeck-plugin-builder
+    skills:
+      - streamdeck-general
+      - streamdeck-cli
+      - streamdeck-manifest
+      - streamdeck-actions
+      - streamdeck-property-inspector
+      - streamdeck-system-devices
+      - streamdeck-oauth
+      - streamdeck-profiles-localization
+      - streamdeck-publishing
