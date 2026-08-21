@@ -85,6 +85,24 @@ Build, debug, and ship XrmToolBox tools — WinForms `UserControl`s hosted in th
 - Getting breakpoints working, including on Windows-on-ARM (ARM64 cannot debug .NET Framework in VS Code — use Visual Studio 2022)
 - Preparing an existing tool for publication
 
+### Stream Deck Plugin Development
+
+Build Elgato Stream Deck plugins end-to-end with the official `@elgato/streamdeck` SDK — a Node.js backend paired with a Chromium property inspector. Ships with an orchestrator agent alongside nine skills.
+
+**Key Capabilities:**
+- Scaffold a plugin with the `streamdeck` CLI and lay out the `.sdPlugin` project correctly
+- Write the `manifest.json` contract — actions, controllers, states, encoders, `SDKVersion`, DRM
+- Implement key and dial actions on `SingletonAction` (`onKeyDown`, `onDialRotate`, `setFeedback`, multi-state toggles)
+- Build the property inspector UI with `sdpi-components`, and persist action vs global settings
+- Wire OAuth 2.0 (authorization code + PKCE) through the Elgato redirect proxy, including refresh-token rotation
+- Bundle profiles, localize into eight languages, and author custom touch-strip layouts
+- Package a `.streamDeckPlugin` and submit it to the Elgato Marketplace
+
+**Use Cases:**
+- Starting a new Stream Deck plugin from scratch
+- Connecting a plugin to Spotify, Twitch, Hue, GitHub or any OAuth2 provider
+- Getting a plugin through Maker Console review and shipped
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -310,6 +328,12 @@ agent-skills/
 1. Install the `xrmtoolbox-plugin-dev` plugin, or open `src/skills/xrmtoolbox-plugin-dev/SKILL.md`
 2. The bundled agent enforces the `ExecuteMethod` → `WorkAsync` rule that keeps the shell responsive
 
+### Building a Stream Deck Plugin
+
+1. Install the `streamdeck` plugin, or start from `src/skills/streamdeck-general/SKILL.md`
+2. Load `streamdeck-manifest` before writing code — the manifest is the contract, and `manifest.UUID` can never change once users have buttons bound to it
+3. For third-party APIs, `streamdeck-oauth` covers the Elgato redirect proxy, which works where custom URL schemes do not
+
 ## 📦 Distribution
 
 Skills can be consumed four ways — pick whichever fits your tooling:
@@ -384,6 +408,12 @@ Contributions are welcome! If you'd like to add new skills or improve existing o
 - [Workflow processes (MS Learn)](https://learn.microsoft.com/power-automate/workflow-processes) — authoritative reference
 - [Workflow extensions / Custom workflow activities (MS Learn)](https://learn.microsoft.com/power-apps/developer/data-platform/workflow/workflow-extensions)
 - [Power Platform CLI](https://learn.microsoft.com/power-platform/developer/cli/introduction)
+
+### Stream Deck
+- [Stream Deck SDK documentation](https://docs.elgato.com/streamdeck/sdk/introduction/getting-started) — authoritative reference
+- [`@elgato/streamdeck` on npm](https://www.npmjs.com/package/@elgato/streamdeck)
+- [sdpi-components (property inspector UI)](https://sdpi-components.dev)
+- [Maker Console (Marketplace submission)](https://maker.elgato.com)
 
 ## 📄 License
 

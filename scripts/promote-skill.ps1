@@ -396,6 +396,10 @@ Write-Host "  + plugins.yml entry for '$Name'"
 if (-not $SkipBuild) {
     Write-Host ''
     Write-Host "Running build-plugins.ps1..." -ForegroundColor Cyan
+    # '&' runs these in-process, which does NOT set $LASTEXITCODE - it keeps the
+    # value left by the last external command. Zero it first or the guard reads a
+    # stale code and throws on a build that succeeded.
+    $global:LASTEXITCODE = 0
     & (Join-Path $PSScriptRoot 'build-plugins.ps1') -RepoRoot $RepoRoot
     if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
         throw "build-plugins.ps1 failed (exit $LASTEXITCODE). Fix the issue and re-run scripts/build-plugins.ps1."
@@ -403,6 +407,7 @@ if (-not $SkipBuild) {
 
     Write-Host ''
     Write-Host "Running lint.ps1..." -ForegroundColor Cyan
+    $global:LASTEXITCODE = 0
     & (Join-Path $PSScriptRoot 'lint.ps1') -RepoRoot $RepoRoot
     if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
         throw "lint.ps1 reported errors. Fix them before committing."

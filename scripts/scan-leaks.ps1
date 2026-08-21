@@ -114,7 +114,15 @@ $regexPatterns = @(
     [pscustomobject]@{
         Id      = 'email-address'
         Pattern = '(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b'
-        Accept  = { param($m) $m -notmatch '(?i)@(example\.com|users\.noreply\.github\.com)$' }
+        # Retina/asset filenames parse as addresses (icon@2x.png, logo@3x.webp),
+        # as do versioned bundles (app@1.2.js). Treat a file extension as proof
+        # it is a filename, not a mailbox.
+        Accept  = {
+            param($m)
+            if ($m -match '(?i)@(example\.com|users\.noreply\.github\.com)$') { return $false }
+            if ($m -match '(?i)\.(png|jpe?g|gif|svg|webp|ico|bmp|pdf|zip|nupkg|dll|exe|md|markdown|txt|json|ya?ml|ts|js|mjs|cjs|css|html?|ps1|sh|cs|csx|xaml)$') { return $false }
+            return $true
+        }
     },
     [pscustomobject]@{
         Id      = 'tenant-domain'
@@ -129,12 +137,16 @@ $regexPatterns = @(
     [pscustomobject]@{
         Id      = 'public-ipv4'
         Pattern = '\b(?:\d{1,3}\.){3}\d{1,3}\b'
-        # Assembly identities and NuGet versions are dotted quads too
-        # (Version=4.0.0.0, Version="9.0.2.45") and blocked real promotions.
+        # Dotted quads in developer docs are almost always versions, not hosts:
+        # assembly identities (Version=4.0.0.0), four-component product versions
+        # ("Version": "1.0.0.0"), bump examples (1.0.0.0 -> 1.0.0.1), and runtime
+        # tables (Chromium 130.0.0.0). Exempt a quad when its line carries any
+        # version/runtime context word. gitleaks remains the real secret gate;
+        # this pass only flags identifiers worth a second look.
         Accept  = {
             param($m, $line)
             if (-not (Get-IsPublicIpv4 -Ip $m)) { return $false }
-            $versionish = '(?i)(version\s*[=:]|publickeytoken|packagereference|\bnuget\b|assemblyversion|\bv' + [regex]::Escape($m) + ')'
+            $versionish = '(?i)(version|publickeytoken|packagereference|\bnuget\b|assemblyversion|manifest|\bbump|four-component|\bsdk\b|runtime|chromium|electron|\bnode\b|\bv' + [regex]::Escape($m) + ')'
             return ($line -notmatch $versionish)
         }
     }
